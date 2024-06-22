@@ -46,7 +46,6 @@ You can find more details and explanations for all parameters with:
 
 ```
 ./lns-removal-replan --help
-
 ```
 
 Step 2 : Input the current state JSON file and weight for Adaptive strategy `--adaptive_weight` (optional) and PP replan time limit `--replanTime` (optional) to get the removal and replan information
