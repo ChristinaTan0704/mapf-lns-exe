@@ -1,17 +1,9 @@
-# MAPF-LNS
-![test_ubuntu](https://github.com/Jiaoyang-Li/MAPF-LNS/actions/workflows/test_ubuntu.yml/badge.svg)
-![test_macos](https://github.com/Jiaoyang-Li/MAPF-LNS/actions/workflows/test_macos.yml/badge.svg)
+# LNS REMOVAL & REPLAN
 
-Anytime Multi-Agent Path Finding via Large Neighborhood Search
+The removal and replan functions are from [MAPF-LNS](https://github.com/Jiaoyang-Li/MAPF-LNS). This repository is directly modified based on [MAPF-LNS](https://github.com/Jiaoyang-Li/MAPF-LNS) and enables users to call the removal and replan functions multiple times without changing the current state.
 
 
-MAPF-LNS is an effifent anytime algorithm for solving Multi-Agent Path Finding (MAPF). 
-More details can be found in our paper at IJCAI 2021 [1]. 
-
-Note: The code used in the IJCAI paper had a typo for the agent-based neighborhood selection method. After fixing this typo (commit [3e03f6e](https://github.com/Jiaoyang-Li/MAPF-LNS/commit/3e03f6ed6f59194cde1b95362b66aca8e11c639e)), the method performs better than what was reported in the paper.
-
-A stronger version MAPF-LNS2 can be found here: https://github.com/Jiaoyang-Li/MAPF-LNS2
-
+## Installation 
 The code requires the external libraries 
 BOOST (https://www.boost.org/) and Eigen (https://eigen.tuxfamily.org/). 
 An easy way to install the required libraries on Ubuntu:    
@@ -29,38 +21,14 @@ sudo apt update
     
 After you installed both libraries and downloaded the source code, 
 go into the directory of the source code and compile it with CMake: 
+
 ```
-cmake -DCMAKE_BUILD_TYPE=RELEASE .
-make
+cmake .
+make 
 ```
+## Example Usage
 
-You also need to download the MAPF instances from the MAPF benchmark (https://movingai.com/benchmarks/mapf/index.html). In particular, the format of the scen files is explained here: https://movingai.com/benchmarks/formats.html. For a given number of agents k, the first k rows of the scen file are used to generate the k pairs of start and target locations.
 
-Then, you are able to run the code:
-```
-./lns -m random-32-32-20.map -a random-32-32-20-random-1.scen -o test.csv -k 50 -t 60
-```
-
-- m: the map file from the MAPF benchmark
-- a: the scenario file from the MAPF benchmark
-- o: the output file
-- k: the number of agents
-- t: the runtime limit
-
-You can find more details and explanations for all parameters with:
-```
-./lns --help
-```
-
-## Credits
-
-The software was developed by Jiaoyang Li and Zhe Chen.
-
-The rule-based MAPF solvers (i.e., PPS, PIBT, and winPIBT) inside the software were borrowed from 
-https://github.com/Kei18/pibt/tree/v1.3
-
-MAPF-LNS is released under USC – Research License. See license.txt for further details.
- 
 ## References
 [1] Jiaoyang Li, Zhe Chen, Daniel Harabor, Peter J. Stuckey, Sven Koenig.
 Anytime Multi-Agent Path Finding via Large Neighborhood Search.
