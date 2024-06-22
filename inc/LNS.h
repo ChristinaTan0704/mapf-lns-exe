@@ -15,7 +15,7 @@
 using namespace std::chrono;
 typedef std::chrono::high_resolution_clock Time;
 typedef std::chrono::duration<float> fsec;
-enum destroy_heuristic { RANDOMWALK, INTERSECTION, RANDOMAGENTS, RANDOMWALKLARGE, RANDOMWALKPROB }; //
+enum destroy_heuristic { RANDOMAGENTS, RANDOMWALK, INTERSECTION, RANDOMWALKADV, RANDOMWALKONCE, RANDOMWALKADVONCE, RANDOMWALKPROB, RANDOMWALKMOSTDELAYED, RANDOMWALKORI, DESTORY_COUNT }; //
 
 struct Agent
 {
@@ -38,10 +38,14 @@ struct Neighbor
     vector<Path> old_paths;
 };
 
+// TODO: adaptively change the neighbor size, that is,
+// increase it if no progress is made for a while
+// decrease it if replanning fails to find any solutions for several times
 
 class LNS
 {
 public:
+    int collect_data = 0;
     vector<Agent> agents;
     vector<int> delayed_agents;
     vector<int> delay_list;
@@ -58,13 +62,12 @@ public:
     double average_group_size = -1;
     int num_of_failures = 0; // #replanning that fails to find any solutions
     int num_of_low_level = 0;
-    int pprun = 1;
     string state_json = "";
-    double replan_time_limit = 600;
-    double replan = true;
+    double replan_time_limit = 0.6;
+    int log_step = 1;
     LNS(const Instance& instance, double time_limit,
         string init_algo_name, string replan_algo_name, string destory_name,
-        int neighbor_size, int num_of_subset, int screen, PIBTPPS_option pipp_option);
+        int neighbor_size, int num_of_iterations, int screen, PIBTPPS_option pipp_option);
 
     bool getInitialSolution();
     bool run();
@@ -73,10 +76,6 @@ public:
     void writeResultToFile(string file_name) const;
     void writePathsToFile(string file_name) const;
     string getSolverName() const { return "LNS(" + init_algo_name + ";" + replan_algo_name + ")"; }
-    vector<double> destroy_weights = {1, 1, 0};
-    unordered_set<int> tabu_list; // used by randomwalk strategy
-    list<int> intersections;
-
 private:
     int num_neighbor_sizes = 1; //4; // so the neighbor size could be 2, 4, 8, 16
 
@@ -88,7 +87,7 @@ private:
     int screen;
     destroy_heuristic destroy_strategy = RANDOMWALK;
     int neighbor_size;
-    int num_of_subset;
+    int num_of_iterations;
 
     high_resolution_clock::time_point start_time;
 
@@ -98,11 +97,14 @@ private:
 
     Neighbor neighbor;
 
+    unordered_set<int> tabu_list; // used by randomwalk strategy
+    list<int> intersections;
 
     // adaptive LNS
     bool ALNS = false;
     double decay_factor = 0.01;
     double reaction_factor = 0.01;
+    vector<double> destroy_weights;
     int selected_neighbor;
 
     bool runEECBS();
@@ -120,15 +122,18 @@ private:
     void chooseDestroyHeuristicbyALNS();
 
     bool generateNeighborByRandomWalk();
+    bool generateNeighborByRandomWalkAdv();
+    bool generateNeighborByRandomWalkOnce();
+    bool generateNeighborByRandomWalkAdvOnce();
     bool generateNeighborByRandomWalkProbSelect();
-    bool generateNeighborByRandomWalkLarge();
+    bool generateNeighborByRandomWalkMostDelay();
+    bool generateNeighborByRandomWalkOri();
+    //bool generateNeighborByStart();
     bool generateNeighborByIntersection(bool temporal = true);
 
     int findMostDelayedAgent();
     int findAgentBasedOnDelay();
     int findRandomAgent() const;
     void randomWalk(int agent_id, int start_location, int start_timestep,
-                    set<int>& neighbor, int neighbor_size, int upperbound);
-    void randomWalkLarge(int agent_id, int start_location, int start_timestep,
                     set<int>& neighbor, int neighbor_size, int upperbound);
 };

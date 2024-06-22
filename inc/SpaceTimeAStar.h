@@ -56,7 +56,7 @@ public:
 
     // find path by time-space A* search
     // Returns a shortest path that does not collide with paths in the path table
-    Path findOptimalPath(const PathTable& path_table, double replan_time_limit);
+    Path findOptimalPath(const PathTable& path_table);
 	// find path by time-space A* search
 	// Returns a shortest path that satisfies the constraints of the give node  while
 	// minimizing the number of internal conflicts (that is conflicts with known_paths for other agents found so far).
@@ -72,6 +72,8 @@ public:
 
 	SpaceTimeAStar(const Instance& instance, int agent):
 		SingleAgentSolver(instance, agent) {}
+
+	
 
 private:
 	// define typedefs and handles for heap
