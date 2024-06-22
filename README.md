@@ -28,19 +28,20 @@ make
 ```
 ## Usage
 
-Step 1: Start the removal replan program, if call the removal function only then set `--replan` to `false`
+**Step 1**: Start the removal replan program, if call the removal function only then set `--replan` to `false`
 ```shell
 
 ./lns-removal-replan --map random-32-32-20.map --agentNum 150 --state map-random-32-32-20-scene-1-agent-150.json --pprun 6 --adaptive_weight 1 1 0 --num_subset 20 --uniform_neighbor 0 --neighborSize 8 --replanTime 0.6 --destroyStrategy RandomWalkProb --replan true
 
 ```
 
-- map: the .map file downloaded from the MAPF benchmark
-- agentNum: number of agents in the current map
-- state: path to the current state JSON file, key: agent id, value: list of agent location in 2D x, y coordinate, check `map-random-32-32-20-scene-1-agent-150.json` as an example
-- pprun: number of times to run the PP replan algorithm
-- adaptive_weight: weight for the adaptive algorithm; adaptive_weight [RANDOMWALK, INTERSECTION, RANDOMAGENTS], default [1,1,1]
-- uniform_neighbor: (0) fixed nb_size specified by --neighborSize (1) nb_size sample from {2,4,8,16,32} (2) nb_size sample from 5~16
+- map (required): the .map file downloaded from the MAPF benchmark
+- agentNum (required): number of agents in the current map
+- state (required): path to the current state JSON file, key: agent id, value: list of agent location in 2D x, y coordinate, check `map-random-32-32-20-scene-1-agent-150.json` as an example
+- pprun (optional): number of times to run the PP replan algorithm
+- adaptive_weight (optional): weight for the adaptive algorithm; adaptive_weight [RANDOMWALK, INTERSECTION, RANDOMAGENTS], default [1,1,1]
+- uniform_neighbor (optional): (0) fixed nb_size specified by --neighborSize (1) nb_size sample from {2,4,8,16,32} (2) nb_size sample from 5~16
+- replanTime (optional): replan time limit for calling the PP replan for one time
 
 You can find more details and explanations for all parameters with:
 
@@ -48,10 +49,11 @@ You can find more details and explanations for all parameters with:
 ./lns-removal-replan --help
 ```
 
-Step 2 : Input the current state JSON file and weight for Adaptive strategy `--adaptive_weight` (optional) and PP replan time limit `--replanTime` (optional) to get the removal and replan information
+**Step 2** : Input the current state JSON file and weight for Adaptive strategy `--adaptive_weight` (optional) and PP replan time limit `--replanTime` (optional) to get the removal and replan information
 ```
 --state map-random-32-32-20-scene-1-agent-150.json --adaptive_weight 1 1 0 --replanTime 0.6
 ```
+
 
 ## References
 [1] Jiaoyang Li, Zhe Chen, Daniel Harabor, Peter J. Stuckey, Sven Koenig.
