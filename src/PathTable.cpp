@@ -60,10 +60,16 @@ void PathTable::getConflictingAgents(int agent_id, set<int>& conflicting_agents,
     if (table.empty())
         return;
     if (table[to].size() > to_time && table[to][to_time] != NO_AGENT)
-        conflicting_agents.insert(table[to][to_time]); // vertex conflict
+        {
+            conflicting_agents.insert(table[to][to_time]); // vertex conflict
+//            cout << table[to][to_time] << " ";
+        }
     if (table[to].size() >= to_time && table[from].size() > to_time &&
         table[to][to_time - 1] != NO_AGENT && table[from][to_time] == table[to][to_time - 1])
-        conflicting_agents.insert(table[from][to_time]); // edge conflict
+        {
+            conflicting_agents.insert(table[from][to_time]); // edge conflict
+//            cout << table[to][to_time] << " ";
+        }
     // TODO: collect target conflicts as well.
 }
 

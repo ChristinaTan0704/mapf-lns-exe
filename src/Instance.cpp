@@ -3,12 +3,13 @@
 #include <random>      // std::default_random_engine
 #include <chrono>       // std::chrono::system_clock
 #include"Instance.h"
+#include <nlohmann/json.hpp>
 
 int RANDOM_WALK_STEPS = 100000;
 
-Instance::Instance(const string& map_fname, const string& agent_fname, 
+Instance::Instance(const string& map_fname, const string& agent_fname, const string& state_json,
 	int num_of_agents, int num_of_rows, int num_of_cols, int num_of_obstacles, int warehouse_width):
-	map_fname(map_fname), agent_fname(agent_fname), num_of_agents(num_of_agents)
+	map_fname(map_fname), agent_fname(agent_fname), num_of_agents(num_of_agents), state_json(state_json)
 {
 	bool succ = loadMap();
 	if (!succ)
@@ -26,21 +27,43 @@ Instance::Instance(const string& map_fname, const string& agent_fname,
 		}
 	}
 
-	succ = loadAgents();
-	if (!succ)
-	{
-		if (num_of_agents > 0)
+
+
+	if (state_json == ""){
+		succ = loadAgents();
+		if (!succ)
 		{
-			generateRandomAgents(warehouse_width);
-			// saveAgents();
-            saveNathan();
-		}
-		else
-		{
-			cerr << "Agent file " << agent_fname << " not found." << endl;
-			exit(-1);
+			if (num_of_agents > 0)
+			{
+				generateRandomAgents(warehouse_width);
+				// saveAgents();
+				// saveNathan();
+			}
+			else
+			{
+				cerr << "Agent file " << agent_fname << " not found." << endl;
+				exit(-1);
+			}
 		}
 	}
+	else{
+		using json = nlohmann::json;
+        std::ifstream f(state_json);
+        json data = json::parse(f);
+		start_locations.resize(num_of_agents);
+		goal_locations.resize(num_of_agents);
+
+        for (auto & [key, value] : data.items()){
+            Path path;
+            int id = std::stoi(key);
+			 start_locations[id] = linearizeCoordinate(value.front()[0], value.front()[1]); // row col
+			 goal_locations[id] = linearizeCoordinate(value.back()[0], value.back()[1]);
+        }
+        succ = true;
+        cout << "init instance based on " << state_json << endl;
+	}
+
+
 
 }
 
@@ -352,6 +375,10 @@ bool Instance::loadAgents()
 	return false;
 
 	getline(myfile, line);
+//    if (line.size() < num_of_agents){
+//        return false;
+//    }
+
 	if (line[0] == 'v') // Nathan's benchmark
 	{
 		if (num_of_agents == 0)
@@ -365,6 +392,9 @@ bool Instance::loadAgents()
 		for (int i = 0; i < num_of_agents; i++)
 		{
 			getline(myfile, line);
+            if (line.size() == 0){
+                return false;
+            }
 			tokenizer< char_separator<char> > tok(line, sep);
 			tokenizer< char_separator<char> >::iterator beg = tok.begin();
 			beg++; // skip the first number
@@ -446,7 +476,10 @@ void Instance::saveAgents() const
 void Instance::saveNathan() const
 {
     ofstream myfile;
-    myfile.open(agent_fname); // +"_nathan.scen");
+    size_t lastSlashPos = agent_fname.rfind("/");
+    size_t extensionPos = agent_fname.rfind(".");
+    string output_path = agent_fname.substr(0, lastSlashPos) + "/" + agent_fname.substr(lastSlashPos+1, extensionPos - lastSlashPos - 1) + "_randomGen.scen";
+    myfile.open(output_path); // +"_nathan.scen");
     if (!myfile.is_open())
     {
         cout << "Fail to save the agents to " << agent_fname << endl;
@@ -458,6 +491,7 @@ void Instance::saveNathan() const
                 << getColCoordinate(start_locations[i]) << "\t" << getRowCoordinate(start_locations[i]) << "\t"
                 << getColCoordinate(goal_locations[i]) << "\t" << getRowCoordinate(goal_locations[i]) << "\t"  <<0<< endl;
     myfile.close();
+    cout << "Random generated sample saved to : " << output_path << endl;
 }
 
 
