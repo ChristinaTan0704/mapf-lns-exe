@@ -21,7 +21,7 @@ int main(int argc, char** argv)
         ("pprun", po::value<int>()->default_value(1), "number of time to run PP replan")
 		("replanTime", po::value<double>()->default_value(0.6), "cutoff time for one replan (seconds)")
         ("num_subset", po::value<int>()->default_value(20), "number of subset to generate")
-        ("uniform_neighbor", po::value<int>()->default_value(0), "uniformly genreate the neighbor_size or not (0) fixed nb_size specified by --neighborSize (1) nb_size sample from {2,4,8,16,32} (2) nb_size sample from 5~16")
+        ("uniform_neighbor", po::value<int>()->default_value(0), "(0) fixed nb_size specified by --neighborSize (1) nb_size sample from {2,4,8,16,32} (2) nb_size sample from 5~16")
         ("replan", po::value<bool>()->default_value(true),"use pp to replan or not")
         // params for the input instance and experiment settings
         ("agents,a", po::value<string>()->default_value(""), "input file for agents")

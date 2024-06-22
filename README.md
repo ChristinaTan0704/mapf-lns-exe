@@ -28,7 +28,7 @@ make
 ```
 ## Usage
 
-**Step 1**: Start the removal replan program, if call the removal function only then set `--replan` to `false`
+**Step 1**: Start the LNS removal replan program, if call the removal function only then set `--replan` to `false`
 ```shell
 
 ./lns-removal-replan --map random-32-32-20.map --agentNum 150 --state map-random-32-32-20-scene-1-agent-150.json --pprun 6 --adaptive_weight 1 1 0 --num_subset 20 --uniform_neighbor 0 --neighborSize 8 --replanTime 0.6 --destroyStrategy RandomWalkProb --replan true
@@ -49,11 +49,12 @@ You can find more details and explanations for all parameters with:
 ./lns-removal-replan --help
 ```
 
-**Step 2** : Input the current state JSON file and weight for Adaptive strategy `--adaptive_weight` (optional) and PP replan time limit `--replanTime` (optional) to get the removal and replan information
+**Step 2** : Input the current state JSON file to get the removal and replan information 
+
+Optional input : current weight for Adaptive strategy `--adaptive_weight` and current PP replan time limit `--replanTime`.
 ```
 --state map-random-32-32-20-scene-1-agent-150.json --adaptive_weight 1 1 0 --replanTime 0.6
 ```
-
 
 ## References
 [1] Jiaoyang Li, Zhe Chen, Daniel Harabor, Peter J. Stuckey, Sven Koenig.
