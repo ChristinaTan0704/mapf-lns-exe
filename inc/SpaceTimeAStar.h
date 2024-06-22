@@ -1,9 +1,6 @@
 ﻿#pragma once
 #include "SingleAgentSolver.h"
-#include <chrono>
-using namespace std::chrono;
-typedef std::chrono::high_resolution_clock Time;
-typedef std::chrono::duration<float> fsec;
+
 
 class AStarNode: public LLNode
 {
@@ -53,10 +50,9 @@ public:
 class SpaceTimeAStar: public SingleAgentSolver
 {
 public:
-
     // find path by time-space A* search
     // Returns a shortest path that does not collide with paths in the path table
-    Path findOptimalPath(const PathTable& path_table, double replan_time_limit);
+    Path findOptimalPath(const PathTable& path_table);
 	// find path by time-space A* search
 	// Returns a shortest path that satisfies the constraints of the give node  while
 	// minimizing the number of internal conflicts (that is conflicts with known_paths for other agents found so far).
