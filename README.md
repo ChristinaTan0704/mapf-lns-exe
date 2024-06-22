@@ -1,6 +1,6 @@
-# LNS REMOVAL & REPLAN
+# MAPF-LNS 
 
-The removal and replan functions are from [MAPF-LNS](https://github.com/Jiaoyang-Li/MAPF-LNS). This repository is directly modified based on [MAPF-LNS](https://github.com/Jiaoyang-Li/MAPF-LNS) and enables users to call the removal and replan functions multiple times without changing the current state.
+ [MAPF-LNS](https://github.com/Jiaoyang-Li/MAPF-LNS). This repository is directly modified based on [MAPF-LNS](https://github.com/Jiaoyang-Li/MAPF-LNS) and enables users to call the removal and replan functions multiple times without changing the current state.
 
 
 ## Installation 
