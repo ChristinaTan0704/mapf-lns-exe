@@ -38,14 +38,10 @@ struct Neighbor
     vector<Path> old_paths;
 };
 
-// TODO: adaptively change the neighbor size, that is,
-// increase it if no progress is made for a while
-// decrease it if replanning fails to find any solutions for several times
 
 class LNS
 {
 public:
-    int collect_data = 0;
     vector<Agent> agents;
     vector<int> delayed_agents;
     vector<int> delay_list;
@@ -66,7 +62,6 @@ public:
     string state_json = "";
     double replan_time_limit = 600;
     double replan = true;
-    int log_step = 1;
     LNS(const Instance& instance, double time_limit,
         string init_algo_name, string replan_algo_name, string destory_name,
         int neighbor_size, int num_of_subset, int screen, PIBTPPS_option pipp_option);
@@ -125,14 +120,8 @@ private:
     void chooseDestroyHeuristicbyALNS();
 
     bool generateNeighborByRandomWalk();
-    bool generateNeighborByRandomWalkAdv();
-    bool generateNeighborByRandomWalkOnce();
-    bool generateNeighborByRandomWalkAdvOnce();
     bool generateNeighborByRandomWalkProbSelect();
-    bool generateNeighborByRandomWalkMostDelay();
-    bool generateNeighborByRandomWalkOri();
     bool generateNeighborByRandomWalkLarge();
-    //bool generateNeighborByStart();
     bool generateNeighborByIntersection(bool temporal = true);
 
     int findMostDelayedAgent();

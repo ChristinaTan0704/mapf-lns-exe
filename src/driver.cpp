@@ -5,9 +5,6 @@
 #include "AnytimeEECBS.h"
 #include "PIBT/pibt.h"
 
-// --map pre_work/baseline/MAPF-LNS/map/random-32-32-20.map --agentNum 150 --state data/initial_state_json_10s/LNS2/map-random-32-32-20-scene-1-agent-150.json --adaptive_weight 1 1 --pprun 1 --num_subset 50 --uniform_neighbor 2 --replanTime 0.6 --destroyStrategy RandomWalkLarge
-// --map pre_work/baseline/MAPF-LNS/map/random-32-32-20.map --agentNum 150 --state data/initial_state_json_10s/LNS2/map-random-32-32-20-scene-1-agent-150.json --adaptive_weight  0 0 1
-// --map pre_work/baseline/MAPF-LNS/map/Paris_1_256.map --agentNum 650 --state data/initial_state_json_10s/LNS2/map-Paris_1_256-scene-1-agent-650.json --adaptive_weight 1 1 --pprun 1 --num_subset 20 --uniform_neighbor 2 --replanTime 0.6
 /* Main function */
 int main(int argc, char** argv)
 {
@@ -18,21 +15,16 @@ int main(int argc, char** argv)
 	desc.add_options()
 		("help", "produce help message")
         ("state", po::value<string>()->required(), "json files that store the state")
-        ("map,m", po::value<string>()->default_value(""), "input file for map")
-        ("agentNum,k", po::value<int>()->default_value(0), "number of agents")
+        ("map,m", po::value<string>()->required(), "input file for map")
+        ("agentNum,k", po::value<int>()->required(), "number of agents")
         ("adaptive_weight", po::value<std::vector<double>>()->multitoken()->default_value(std::vector<double>{1.0, 1.0, 0.0}, "1.0 1.0"), "weight for the adaptive strategy")
         ("pprun", po::value<int>()->default_value(1), "number of time to run PP replan")
-		("replanTime", po::value<double>()->default_value(600), "cutoff time for one replan (seconds)")
+		("replanTime", po::value<double>()->default_value(0.6), "cutoff time for one replan (seconds)")
         ("num_subset", po::value<int>()->default_value(20), "number of subset to generate")
-        ("uniform_neighbor", po::value<int>()->default_value(2), "uniformly genreate the neighbor_size or not")
-        ("tabuList,tabu", po::value<std::vector<int>>(&inputIntegers)->multitoken(), "existing tabu list")
+        ("uniform_neighbor", po::value<int>()->default_value(0), "uniformly genreate the neighbor_size or not (0) fixed nb_size specified by --neighborSize (1) nb_size sample from {2,4,8,16,32} (2) nb_size sample from 5~16")
         ("replan", po::value<bool>()->default_value(true),"use pp to replan or not")
-//        ("intersectionList,inter", po::value<std::vector<int>>()->multitoken(), "entries for the list of intersections")
-
         // params for the input instance and experiment settings
         ("agents,a", po::value<string>()->default_value(""), "input file for agents")
-        ("collect_data", po::value<int>()->default_value(0), "doing data collection or not")
-        ("log_step", po::value<int>()->default_value(1), "number of agents")
         ("output,o", po::value<string>(), "output file")
         ("tabu_discount", po::value<double>()->default_value(1), "cutoff time (seconds)")
 		("cutoffTime,t", po::value<double>()->default_value(7200), "cutoff time (seconds)")
@@ -42,14 +34,12 @@ int main(int argc, char** argv)
 		// solver
 		("solver", po::value<string>()->default_value("LNS"), "solver (LNS, A-BCBS, A-EECBS)")
         // params for LNS
-        ("neighborSize", po::value<int>()->default_value(5), "Size of the neighborhood")
+        ("neighborSize", po::value<int>()->default_value(8), "Size of the neighborhood")
         ("seed", po::value<int>()->default_value(0), "Size of the neighborhood")
-        ("initAlgo", po::value<string>()->default_value("EECBS"),
-                "MAPF algorithm for finding the initial solution (EECBS, PP, PPS, CBS, PIBT, winPIBT)")
         ("replanAlgo", po::value<string>()->default_value("PP"),
                 "MAPF algorithm for replanning (EECBS, CBS, PP)")
         ("destroyStrategy", po::value<string>()->default_value("Adaptive"),
-                "Heuristics for finding subgroups (Random, RandomWalk, Intersection, Adaptive, RandomWalkAdv, RandomWalkOnce, RandomWalkAdvOnce, RandomWalkProb, RandomWalkMostDelayed, RandomWalkOri, RadomWalkLarge)")
+                "Heuristics for finding subgroups (Random, RandomWalk, Intersection, Adaptive, RandomWalkProb, RadomWalkLarge)")
         ("pibtWindow", po::value<int>()->default_value(5),
              "window size for winPIBT")
         ("winPibtSoftmode", po::value<bool>()->default_value(true),
@@ -79,24 +69,19 @@ int main(int argc, char** argv)
                       vm["agentNum"].as<int>());
     double time_limit = vm["cutoffTime"].as<double>();
     int screen = vm["screen"].as<int>();
-    LNS lns(instance, time_limit,
-            vm["initAlgo"].as<string>(),
+    LNS lns(instance, time_limit, "JSON",
             vm["replanAlgo"].as<string>(),
             vm["destroyStrategy"].as<string>(),
             vm["neighborSize"].as<int>(),
             vm["num_subset"].as<int>(), screen, pipp_option);
     lns.uniform_neighbor = vm["uniform_neighbor"].as<int>();
     lns.tabu_discount = vm["tabu_discount"].as<double>();
-    lns.collect_data = vm["collect_data"].as<int>();
     lns.state_json = state;
-    lns.log_step = vm["log_step"].as<int>();
     lns.replan_time_limit = vm["replanTime"].as<double>();
     lns.destroy_weights = vm["adaptive_weight"].as<vector<double>>();
     lns.pprun = vm["pprun"].as<int>();
     lns.replan = vm["replan"].as<bool>();
-    if (vm.count("tabuList")) {
-    lns.tabu_list.insert(inputIntegers.begin(), inputIntegers.end());
-    }
+
     std::string  input;
 
     while (true) {
@@ -140,10 +125,7 @@ int main(int argc, char** argv)
             lns.destroy_weights  = vm["adaptive_weight"].as<std::vector<double>>();
             lns.replan_time_limit = vm["replanTime"].as<double>();
 
-
             bool succ = lns.run();  // You might want to pass state and weights
-//            if (succ)
-//                lns.validateSolution();
             cout << "tabu_list: ";
             for (auto i : lns.tabu_list)
                 cout << i << " ";
