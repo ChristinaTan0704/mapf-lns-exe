@@ -27,43 +27,20 @@ Instance::Instance(const string& map_fname, const string& agent_fname, const str
 		}
 	}
 
+	using json = nlohmann::json;
+	std::ifstream f(state_json);
+	json data = json::parse(f);
+	start_locations.resize(num_of_agents);
+	goal_locations.resize(num_of_agents);
 
-
-	if (state_json == ""){
-		succ = loadAgents();
-		if (!succ)
-		{
-			if (num_of_agents > 0)
-			{
-				generateRandomAgents(warehouse_width);
-				// saveAgents();
-				// saveNathan();
-			}
-			else
-			{
-				cerr << "Agent file " << agent_fname << " not found." << endl;
-				exit(-1);
-			}
-		}
+	for (auto & [key, value] : data.items()){
+		Path path;
+		int id = std::stoi(key);
+			start_locations[id] = linearizeCoordinate(value.front()[0], value.front()[1]); // row col
+			goal_locations[id] = linearizeCoordinate(value.back()[0], value.back()[1]);
 	}
-	else{
-		using json = nlohmann::json;
-        std::ifstream f(state_json);
-        json data = json::parse(f);
-		start_locations.resize(num_of_agents);
-		goal_locations.resize(num_of_agents);
-
-        for (auto & [key, value] : data.items()){
-            Path path;
-            int id = std::stoi(key);
-			 start_locations[id] = linearizeCoordinate(value.front()[0], value.front()[1]); // row col
-			 goal_locations[id] = linearizeCoordinate(value.back()[0], value.back()[1]);
-        }
-        succ = true;
-        cout << "init instance based on " << state_json << endl;
-	}
-
-
+	succ = true;
+	cout << "init instance based on " << state_json << endl;
 
 }
 
