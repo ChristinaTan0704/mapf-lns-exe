@@ -51,7 +51,7 @@ You can find more details and explanations for all parameters with:
 
 **Step 2** : Input the current state JSON file to get the removal and replan information 
 
-Optional input : current weight for Adaptive strategy `--adaptive_weight` and current PP replan time limit `--replanTime`. 
+Optional input : current weight for Adaptive strategy `--adaptive_weight`
 ```
 --state map-random-32-32-20-scene-1-agent-150.json
 ```

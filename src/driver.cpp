@@ -123,7 +123,6 @@ int main(int argc, char** argv)
         if (vm.count("state")) {
             lns.state_json  = vm["state"].as<std::string>();
             lns.destroy_weights  = vm["adaptive_weight"].as<std::vector<double>>();
-            lns.replan_time_limit = vm["replanTime"].as<double>();
 
             bool succ = lns.run();  // You might want to pass state and weights
             cout << "tabu_list: ";
