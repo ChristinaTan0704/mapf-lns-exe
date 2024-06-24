@@ -15,7 +15,7 @@
 using namespace std::chrono;
 typedef std::chrono::high_resolution_clock Time;
 typedef std::chrono::duration<float> fsec;
-enum destroy_heuristic { RANDOMAGENTS, RANDOMWALK, INTERSECTION, RANDOMWALKADV, RANDOMWALKONCE, RANDOMWALKADVONCE, RANDOMWALKPROB, RANDOMWALKMOSTDELAYED, RANDOMWALKORI, DESTORY_COUNT }; //
+enum destroy_heuristic { RANDOMAGENTS, RANDOMWALK, INTERSECTION, RANDOMWALKPROB, DESTORY_COUNT }; //
 
 struct Agent
 {
@@ -38,14 +38,9 @@ struct Neighbor
     vector<Path> old_paths;
 };
 
-// TODO: adaptively change the neighbor size, that is,
-// increase it if no progress is made for a while
-// decrease it if replanning fails to find any solutions for several times
-
 class LNS
 {
 public:
-    int collect_data = 0;
     vector<Agent> agents;
     vector<int> delayed_agents;
     vector<int> delay_list;
@@ -122,13 +117,7 @@ private:
     void chooseDestroyHeuristicbyALNS();
 
     bool generateNeighborByRandomWalk();
-    bool generateNeighborByRandomWalkAdv();
-    bool generateNeighborByRandomWalkOnce();
-    bool generateNeighborByRandomWalkAdvOnce();
     bool generateNeighborByRandomWalkProbSelect();
-    bool generateNeighborByRandomWalkMostDelay();
-    bool generateNeighborByRandomWalkOri();
-    //bool generateNeighborByStart();
     bool generateNeighborByIntersection(bool temporal = true);
 
     int findMostDelayedAgent();

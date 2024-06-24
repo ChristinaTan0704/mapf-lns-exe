@@ -13,11 +13,11 @@ int main(int argc, char** argv)
 	po::options_description desc("Allowed options");
 	desc.add_options()
 		("help", "produce help message")
-        ("state", po::value<string>()->default_value(""), "json file that stores the state")
+        ("state", po::value<string>()->required(), "json file that stores the state")
         ("uniform_neighbor", po::value<int>()->default_value(0), "(0) fixed nb_size specified by --neighborSize (1) nb_size sample from {2,4,8,16,32} (2) nb_size sample from 5~16")
 		("map,m", po::value<string>()->required(), "input file for map")
 		("agents,a", po::value<string>()->required(), "input file for agents")
-		("agentNum,k", po::value<int>()->default_value(0), "number of agents")
+		("agentNum,k", po::value<int>()->required(), "number of agents")
         ("log_step", po::value<int>()->default_value(1), "number of agents")
         ("output,o", po::value<string>(), "output file")
         ("tabu_discount", po::value<double>()->default_value(1), "cutoff time (seconds)")
@@ -39,7 +39,7 @@ int main(int argc, char** argv)
         ("replanAlgo", po::value<string>()->default_value("PP"),
                 "MAPF algorithm for replanning (EECBS, CBS, PP)")
         ("destroyStrategy", po::value<string>()->default_value("Adaptive"),
-                "Heuristics for finding subgroups (Random, RandomWalk, Intersection, Adaptive, RandomWalkAdv, RandomWalkOnce, RandomWalkAdvOnce, RandomWalkProb, RandomWalkMostDelayed, RandomWalkOri)")
+                "Heuristics for finding subgroups (Random, RandomWalk, Intersection, Adaptive, RandomWalkProb)")
         ("pibtWindow", po::value<int>()->default_value(5),
              "window size for winPIBT")
         ("winPibtSoftmode", po::value<bool>()->default_value(true),
@@ -85,7 +85,6 @@ int main(int argc, char** argv)
             lns.writeResultToFile(vm["output"].as<string>());
         if (vm.count("stats"))
             lns.writeIterStatsToFile(vm["stats"].as<string>());
-        // lns.writePathsToFile("path.txt");
     }
     else if (vm["solver"].as<string>() == "A-BCBS") // anytime BCBS(w, 1)
     {

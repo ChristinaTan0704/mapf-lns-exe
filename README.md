@@ -30,7 +30,7 @@ make
 
 
 ```python
-./lns-removal-replan --destroyStrategy [Intersection / RandomWalk / Random / Adaptive / RandomWalkProb ] \
+./rule-based-lns --destroyStrategy [Intersection / RandomWalk / Random / Adaptive / RandomWalkProb ] \
 --uniform_neighbor 0 --neighborSize 32 \
 --map random-32-32-20.map \
 --agents random-32-32-20-random-1.scen \
@@ -40,7 +40,7 @@ make
 --cutoffTime 300
 ```
 
-<!-- ./lns-removal-replan --destroyStrategy RandomWalk \
+<!-- ./rule-based-lns --destroyStrategy RandomWalk \
 --uniform_neighbor 0 --neighborSize 32 \
 --map random-32-32-20.map \
 --agents random-32-32-20-random-1.scen \
