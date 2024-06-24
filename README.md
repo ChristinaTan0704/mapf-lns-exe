@@ -37,7 +37,7 @@ make
 
 - map (required): the .map file downloaded from the MAPF benchmark
 - agentNum (required): number of agents in the current map
-- state (required): path to the current state JSON file, key: agent id, value: list of agent location in 2D x, y coordinate, check `map-random-32-32-20-scene-1-agent-150.json` as an example
+- state (required): path to the current state JSON file, key: agent id, value: list of agent location in 2D x, y coordinate, check [map-random-32-32-20-scene-1-agent-150.json](map-random-32-32-20-scene-1-agent-150.json) as an example
 - pprun (optional): number of times to run the PP replan algorithm
 - adaptive_weight (optional): weight for the adaptive algorithm; adaptive_weight [RANDOMWALK, INTERSECTION, RANDOMAGENTS], default [1,1,1]
 - uniform_neighbor (optional): (0) fixed nb_size specified by --neighborSize (1) nb_size sample from {2,4,8,16,32} (2) nb_size sample from 5~16
