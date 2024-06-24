@@ -5,10 +5,6 @@
 #include "AnytimeEECBS.h"
 #include "PIBT/pibt.h"
 
-// --destoryStrategy Random --uniform_neighbor 0 --neighborSize 25  -m pre_work/baseline/MAPF-LNS/map/empty-32-32.map -a pre_work/baseline/MAPF-LNS/scene/empty-32-32-random-25.scen -k 350 -t 1510 --initAlgo PP --maxIterations=2000 --state data/initial_state_json_10s/LACAM2/map-empty-32-32-scene-25-agent-350.json --log_step 100
-// --destoryStrategy Random --uniform_neighbor 0 --neighborSize 8 -m pre_work/baseline/MAPF-LNS/map/ost003d.map -a data/nss_random_scene/gen_scene/ost003d-random-59_randomGen.scen -k 400 -t 60 --seed 94480 --initAlgo PP --maxIterations=1
-//--map pre_work/baseline/MAPF-LNS/map/random-32-32-20.map --agentNum 150 --state data/initial_state_json_10s/LNS2/map-random-32-32-20-scene-1-agent-150.json --adaptive_weight 1 1 --pprun 1 --num_subset 20 --uniform_neighbor 2 --replanTime 0.6
-//  pre_work/baseline/MAPF-LNS/lns --destoryStrategy Adaptive --uniform_neighbor 0 --neighborSize 16 -m pre_work/baseline/MAPF-LNS/map/ost003d.map -a pre_work/baseline/MAPF-LNS/scene/ost003d-random-3.scen -k 600 -t 610 --initAlgo PP --maxIterations=2000 --state data/initial_state_json_10s/LNS2/map-ost003d-scene-3-agent-600.json --log_step 50
 /* Main function */ 
 int main(int argc, char** argv)
 {
@@ -18,9 +14,7 @@ int main(int argc, char** argv)
 	desc.add_options()
 		("help", "produce help message")
         ("state", po::value<string>()->default_value(""), "json file that stores the state")
-        // params for the input instance and experiment settings
-        ("collect_data", po::value<int>()->default_value(0), "doing data collection or not")
-        ("uniform_neighbor", po::value<int>()->default_value(0), "uniformly genreate the neighbor_size or not")
+        ("uniform_neighbor", po::value<int>()->default_value(0), "(0) fixed nb_size specified by --neighborSize (1) nb_size sample from {2,4,8,16,32} (2) nb_size sample from 5~16")
 		("map,m", po::value<string>()->required(), "input file for map")
 		("agents,a", po::value<string>()->required(), "input file for agents")
 		("agentNum,k", po::value<int>()->default_value(0), "number of agents")
@@ -44,7 +38,7 @@ int main(int argc, char** argv)
                 "MAPF algorithm for finding the initial solution (EECBS, PP, PPS, CBS, PIBT, winPIBT)")
         ("replanAlgo", po::value<string>()->default_value("PP"),
                 "MAPF algorithm for replanning (EECBS, CBS, PP)")
-        ("destoryStrategy", po::value<string>()->default_value("Adaptive"),
+        ("destroyStrategy", po::value<string>()->default_value("Adaptive"),
                 "Heuristics for finding subgroups (Random, RandomWalk, Intersection, Adaptive, RandomWalkAdv, RandomWalkOnce, RandomWalkAdvOnce, RandomWalkProb, RandomWalkMostDelayed, RandomWalkOri)")
         ("pibtWindow", po::value<int>()->default_value(5),
              "window size for winPIBT")
@@ -65,12 +59,10 @@ int main(int argc, char** argv)
 
     po::notify(vm);
 
-	srand(vm["seed"].as<int>());  // TODO uncomment this line
-    // srand(time(NULL)); // TODO del this line
+	srand(vm["seed"].as<int>()); 
 
 	Instance instance(vm["map"].as<string>(), vm["agents"].as<string>(), vm["state"].as<string>(),
 		vm["agentNum"].as<int>());
-    // return 0; // TODO del this line
     double time_limit = vm["cutoffTime"].as<double>();
     int screen = vm["screen"].as<int>();
 	if (vm["solver"].as<string>() == "LNS")
@@ -78,12 +70,11 @@ int main(int argc, char** argv)
         LNS lns(instance, time_limit,
                 vm["initAlgo"].as<string>(),
                 vm["replanAlgo"].as<string>(),
-                vm["destoryStrategy"].as<string>(),
+                vm["destroyStrategy"].as<string>(),
                 vm["neighborSize"].as<int>(),
                 vm["maxIterations"].as<int>(), screen, pipp_option);
         lns.uniform_neighbor = vm["uniform_neighbor"].as<int>();
         lns.tabu_discount = vm["tabu_discount"].as<double>();
-        lns.collect_data = vm["collect_data"].as<int>();
         lns.state_json = vm["state"].as<string>();
         lns.log_step = vm["log_step"].as<int>();
         lns.replan_time_limit = vm["replanTime"].as<double>();

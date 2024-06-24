@@ -30,14 +30,23 @@ make
 
 
 ```python
-./lns-removal-replan --destoryStrategy [Intersection / RandomWalk / Random / Adaptive / RandomWalkProb ] \
+./lns-removal-replan --destroyStrategy [Intersection / RandomWalk / Random / Adaptive / RandomWalkProb ] \
 --uniform_neighbor 0 --neighborSize 32 \
 --map random-32-32-20.map \
-
-
+--agents random-32-32-20-random-1.scen \
+--state map-random-32-32-20-scene-1-agent-150.json \
+--agentNum 150 \
+--maxIterations 10000 \
+--cutoffTime 300
 ```
 
-<!-- pre_work/baseline/MAPF-LNS/lns --destoryStrategy Random --uniform_neighbor 0 --neighborSize 32 -m pre_work/baseline/MAPF-LNS/map/den520d.map -a pre_work/baseline/MAPF-LNS/scene/den520d-random-9.scen -k 900 -t 1510 --initAlgo PP --maxIterations=2000 --state data/initial_state_json_10s/LNS2/map-den520d-scene-9-agent-900.json --log_step 50 -->
+<!-- ./lns-removal-replan --destroyStrategy RandomWalk \
+--uniform_neighbor 0 --neighborSize 32 \
+--map random-32-32-20.map \
+--agents random-32-32-20-random-1.scen \
+--state map-random-32-32-20-scene-1-agent-150.json \
+--agentNum 150 \
+--cutoffTime 300 -->
 
 
 ## References
