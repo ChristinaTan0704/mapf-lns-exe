@@ -1,6 +1,7 @@
-# EXE extracted from [MAPF-LNS](https://github.com/Jiaoyang-Li/MAPF-LNS)
+# Executable Functions Extracted From [MAPF-LNS](https://github.com/Jiaoyang-Li/MAPF-LNS)
 
 This is a fork of [MAPF-LNS](https://github.com/Jiaoyang-Li/MAPF-LNS).
+
 The master branch is the same as the original repo. Different branches are different exe extracted from the original repo for project [Benchmarking Large Neighborhood Search for Multi-Agent Path Finding](https://github.com/ChristinaTan0704/mapf-lns-benchmark). 
 
 # Usage
