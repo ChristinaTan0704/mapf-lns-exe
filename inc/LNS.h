@@ -38,6 +38,10 @@ struct Neighbor
     vector<Path> old_paths;
 };
 
+// TODO: adaptively change the neighbor size, that is,
+// increase it if no progress is made for a while
+// decrease it if replanning fails to find any solutions for several times
+
 class LNS
 {
 public:

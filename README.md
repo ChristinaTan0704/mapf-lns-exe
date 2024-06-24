@@ -36,8 +36,20 @@ make
 --agents random-32-32-20-random-1.scen \
 --state map-random-32-32-20-scene-1-agent-150.json \
 --agentNum 150 \
---maxIterations 10000 \
 --cutoffTime 300
+```
+- agents (required): the .scen file downloaded from the MAPF benchmark
+- map (required): the .map file downloaded from the MAPF benchmark
+- agentNum (required): number of agents in the current map
+- state (required): path to the current state JSON file, key: agent id, value: list of agent location in 2D x, y coordinate, check [map-random-32-32-20-scene-1-agent-150.json](map-random-32-32-20-scene-1-agent-150.json) as an example
+- uniform_neighbor (optional): (0) fixed nb_size specified by --neighborSize (1) nb_size sample from {2,4,8,16,32} (2) nb_size sample from 5~16
+- cutoffTime (optional): run time limit for running the removal and replan of LNS
+
+
+You can find more details and explanations for all parameters with:
+
+```
+./rule-based-lns --help
 ```
 
 <!-- ./rule-based-lns --destroyStrategy RandomWalk \
