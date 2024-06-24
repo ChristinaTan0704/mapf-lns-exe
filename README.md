@@ -1,4 +1,21 @@
-# MAPF-LNS
+# EXE extracted from [MAPF-LNS](https://github.com/Jiaoyang-Li/MAPF-LNS)
+
+This is a fork of [MAPF-LNS](https://github.com/Jiaoyang-Li/MAPF-LNS).
+The master branch is the same as the original repo. Different branches are different exe extracted from the original repo for project [Benchmarking Large Neighborhood Search for Multi-Agent Path Finding](https://github.com/ChristinaTan0704/mapf-lns-benchmark). 
+
+# Usage
+
+## LNS removal & replan exe
+
+## Rule-based heuristic implementation exe
+
+## Priority Planning Algorithm (PP)
+
+
+
+
+<!-- 
+
 ![test_ubuntu](https://github.com/Jiaoyang-Li/MAPF-LNS/actions/workflows/test_ubuntu.yml/badge.svg)
 ![test_macos](https://github.com/Jiaoyang-Li/MAPF-LNS/actions/workflows/test_macos.yml/badge.svg)
 
@@ -50,9 +67,9 @@ Then, you are able to run the code:
 You can find more details and explanations for all parameters with:
 ```
 ./lns --help
-```
+``` -->
 
-## Credits
+<!-- ## Credits
 
 The software was developed by Jiaoyang Li and Zhe Chen.
 
@@ -60,11 +77,11 @@ The rule-based MAPF solvers (i.e., PPS, PIBT, and winPIBT) inside the software w
 https://github.com/Kei18/pibt/tree/v1.3
 
 MAPF-LNS is released under USC – Research License. See license.txt for further details.
- 
-## References
+  -->
+<!-- ## References
 [1] Jiaoyang Li, Zhe Chen, Daniel Harabor, Peter J. Stuckey, Sven Koenig.
 Anytime Multi-Agent Path Finding via Large Neighborhood Search.
-In Proceedings of the International Joint Conference on Artificial Intelligence (IJCAI), pages 4127-4135, 2021.         
+In Proceedings of the International Joint Conference on Artificial Intelligence (IJCAI), pages 4127-4135, 2021.          -->
 
  
 
