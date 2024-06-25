@@ -22,15 +22,15 @@ Path SpaceTimeAStar::findOptimalPath(const HLNode& node, const ConstraintTable& 
 
 // find path by time-space A* search
 // Returns a shortest path that does not collide with paths in the path table
-Path SpaceTimeAStar::findOptimalPath(const PathTable& path_table)
+Path SpaceTimeAStar::findOptimalPath(const PathTable& path_table, double replan_time_limit)
 {
     Path path;
+	replan_time_limit = 0.6;
     num_expanded = 0;
     num_generated = 0;
 
     // build constraint table
     auto t = clock();
-
     int holding_time = -1; // the earliest timestep when the agent can hold its goal location.
     if(!path_table.table.empty())
     {
@@ -52,9 +52,16 @@ Path SpaceTimeAStar::findOptimalPath(const PathTable& path_table)
     allNodes_table.insert(start);
     min_f_val = (int) start->getFVal();
     // lower_bound = int(w * min_f_val));
-
+	auto start_time = Time::now();
+//	double runtime_limit = 0.6;
     while (!open_list.empty())
     {
+
+		if (((fsec)(Time::now() - start_time)).count() > replan_time_limit){
+			releaseNodes();
+    		return path;
+		}
+
         updateFocalList(); // update FOCAL if min f-val increased
         auto* curr = popNode();
         assert(curr->location >= 0);
