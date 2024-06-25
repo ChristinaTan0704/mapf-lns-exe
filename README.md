@@ -29,7 +29,7 @@ make
 ## Usage
 
 
-```python
+```shell
 ./rule-based-lns --destroyStrategy [Intersection / RandomWalk / Random / Adaptive / RandomWalkProb ] \
 --uniform_neighbor 0 --neighborSize 32 \
 --map random-32-32-20.map \
