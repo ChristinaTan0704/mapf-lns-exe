@@ -27,7 +27,6 @@ int main(int argc, char** argv)
         ("num_subset", po::value<int>()->default_value(20), "number of subset to generate")
         ("uniform_neighbor", po::value<int>()->default_value(2), "uniformly genreate the neighbor_size or not")
         ("replan", po::value<bool>()->default_value(true),"use pp to replan or not")
-//        ("intersectionList,inter", po::value<std::vector<int>>()->multitoken(), "entries for the list of intersections")
 
         // params for the input instance and experiment settings
         ("agents,a", po::value<string>()->default_value(""), "input file for agents")
@@ -85,14 +84,7 @@ int main(int argc, char** argv)
             vm["destroyStrategy"].as<string>(),
             vm["neighborSize"].as<int>(),
             vm["num_subset"].as<int>(), screen, pipp_option);
-    lns.uniform_neighbor = vm["uniform_neighbor"].as<int>();
-    lns.tabu_discount = vm["tabu_discount"].as<double>();
-    lns.collect_data = vm["collect_data"].as<int>();
     lns.state_json = state;
-    lns.log_step = vm["log_step"].as<int>();
-    lns.replan_time_limit = vm["replanTime"].as<double>();
-    lns.destroy_weights = vm["adaptive_weight"].as<vector<double>>();
-    lns.pprun = vm["pprun"].as<int>();
     lns.replan_agents = vm["replanAgents"].as<vector<int>>();
     std::string  input;
 
@@ -146,10 +138,6 @@ int main(int argc, char** argv)
 
     }
 
-    if (vm.count("output"))
-        lns.writeResultToFile(vm["output"].as<string>());
-    if (vm.count("stats"))
-        lns.writeIterStatsToFile(vm["stats"].as<string>());
 	return 0;
 
 }

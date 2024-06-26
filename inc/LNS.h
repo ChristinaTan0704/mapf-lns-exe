@@ -74,9 +74,6 @@ public:
     bool getInitialSolution();
     bool run();
     void validateSolution() const;
-    void writeIterStatsToFile(string file_name) const;
-    void writeResultToFile(string file_name) const;
-    void writePathsToFile(string file_name) const;
     string getSolverName() const { return "LNS(" + init_algo_name + ";" + replan_algo_name + ")"; }
     vector<double> destroy_weights = {1, 1, 0};
     unordered_set<int> tabu_list; // used by randomwalk strategy
@@ -120,27 +117,5 @@ private:
 
     PIBTPPS_option pipp_option;
 
-    MAPF preparePIBTProblem(vector<int> shuffled_agents);
-    void updatePIBTResult(const PIBT_Agents& A,vector<int> shuffled_agents);
 
-    void chooseDestroyHeuristicbyALNS();
-
-    bool generateNeighborByRandomWalk();
-    bool generateNeighborByRandomWalkAdv();
-    bool generateNeighborByRandomWalkOnce();
-    bool generateNeighborByRandomWalkAdvOnce();
-    bool generateNeighborByRandomWalkProbSelect();
-    bool generateNeighborByRandomWalkMostDelay();
-    bool generateNeighborByRandomWalkOri();
-    bool generateNeighborByRandomWalkLarge();
-    //bool generateNeighborByStart();
-    bool generateNeighborByIntersection(bool temporal = true);
-
-    int findMostDelayedAgent();
-    int findAgentBasedOnDelay();
-    int findRandomAgent() const;
-    void randomWalk(int agent_id, int start_location, int start_timestep,
-                    set<int>& neighbor, int neighbor_size, int upperbound);
-    void randomWalkLarge(int agent_id, int start_location, int start_timestep,
-                    set<int>& neighbor, int neighbor_size, int upperbound);
 };
