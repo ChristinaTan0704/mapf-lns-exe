@@ -1,6 +1,6 @@
 # MAPF-LNS 
 
-This repository is directly modified based on [MAPF-LNS](https://github.com/Jiaoyang-Li/MAPF-LNS) , with the addition of a RandomWalkProb heuristic. The input to this executable is a JSON file where the key is the agent ID and the value is a list of agent locations in 2D x, y coordinates (see [map-random-32-32-20-scene-1-agent-150.json](map-random-32-32-20-scene-1-agent-150.json) as an example). The delay and runtime information will be logged in the terminal. 
+This repository is directly modified based on [MAPF-LNS](https://github.com/Jiaoyang-Li/MAPF-LNS), with the addition of a RandomWalkProb heuristic. The input to this executable is a JSON file where the key is the agent ID and the value is a list of agent locations in 2D x and y coordinates (see [map-random-32-32-20-scene-1-agent-150.json](map-random-32-32-20-scene-1-agent-150.json) as an example). The delay and runtime information will be logged in the terminal. 
 
 
 ## Installation 
@@ -14,12 +14,12 @@ sudo apt update
  ```shell script
     sudo apt install libeigen3-dev
  ```
-- Install the boost library 
+- Install the boost library
  ```shell script
     sudo apt install libboost-all-dev
  ```
     
-After you installed both libraries and downloaded the source code, 
+After you have installed both libraries and downloaded the source code, 
 go into the directory of the source code and compile it with CMake: 
 
 ```
@@ -51,14 +51,6 @@ You can find more details and explanations for all parameters with:
 ```
 ./rule-based-lns --help
 ```
-
-<!-- ./rule-based-lns --destroyStrategy RandomWalk \
---uniform_neighbor 0 --neighborSize 32 \
---map random-32-32-20.map \
---agents random-32-32-20-random-1.scen \
---state map-random-32-32-20-scene-1-agent-150.json \
---agentNum 150 \
---cutoffTime 300 -->
 
 
 ## References
