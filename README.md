@@ -27,7 +27,7 @@ cmake .
 make 
 ```
 ## Usage
-
+To run LNS with rule-based heuristics, use the following command:
 
 ```shell
 ./rule-based-lns --destroyStrategy [Intersection / RandomWalk / Random / Adaptive / RandomWalkProb ] \
@@ -51,15 +51,6 @@ You can find more details and explanations for all parameters with:
 ```
 ./rule-based-lns --help
 ```
-
-<!-- ./rule-based-lns --destroyStrategy RandomWalk \
---uniform_neighbor 0 --neighborSize 32 \
---map random-32-32-20.map \
---agents random-32-32-20-random-1.scen \
---state map-random-32-32-20-scene-1-agent-150.json \
---agentNum 150 \
---cutoffTime 300 -->
-
 
 ## References
 [1] Jiaoyang Li, Zhe Chen, Daniel Harabor, Peter J. Stuckey, Sven Koenig.
