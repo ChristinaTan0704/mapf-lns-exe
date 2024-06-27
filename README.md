@@ -52,10 +52,6 @@ You can find more details and explanations for all parameters with:
 ./rule-based-lns --help
 ```
 
-<<<<<<< HEAD
-
-=======
->>>>>>> e3d16d1102e0a05e48148782b43cb6033b5ad053
 ## References
 [1] Jiaoyang Li, Zhe Chen, Daniel Harabor, Peter J. Stuckey, Sven Koenig.
 Anytime Multi-Agent Path Finding via Large Neighborhood Search.
