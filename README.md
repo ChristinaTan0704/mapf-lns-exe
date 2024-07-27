@@ -46,7 +46,7 @@ make
 
 You can find more details and explanations for all parameters with:
 ```
-./pbs-replan --help
+./pp_open --help
 ```
 
 **Step 2** : Input the current state JSON file and the list of replan agents to get the removal and replan information 
