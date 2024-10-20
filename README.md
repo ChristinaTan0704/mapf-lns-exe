@@ -23,6 +23,7 @@ After you have installed both libraries and downloaded the source code,
 go into the directory of the source code and compile it with CMake: 
 
 ```
+cd exe/lns-rule-based
 cmake .
 make 
 ```
