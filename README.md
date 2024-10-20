@@ -1,6 +1,6 @@
-# MAPF-LNS 
+# Rule-based MAPF-LNS for [Benchmarking Large Neighborhood Search for Multi-Agent Path Finding](https://github.com/ChristinaTan0704/mapf-lns-benchmark/tree/main)
 
-This repository is directly modified based on [MAPF-LNS](https://github.com/Jiaoyang-Li/MAPF-LNS), with the addition of a RandomWalkProb heuristic. The input to this executable is a JSON file where the key is the agent ID and the value is a list of agent locations in 2D x and y coordinates (see [map-random-32-32-20-scene-1-agent-150.json](map-random-32-32-20-scene-1-agent-150.json) as an example). The delay and runtime information will be logged in the terminal. 
+This repository is directly modified based on [Rule-based MAPF-LNS](https://github.com/Jiaoyang-Li/MAPF-LNS), with the addition of a RandomWalkProb heuristic. The input to this executable is a JSON file where the key is the agent ID and the value is a list of agent locations in 2D x and y coordinates (see [map-random-32-32-20-scene-1-agent-150.json](map-random-32-32-20-scene-1-agent-150.json) as an example). The delay and runtime information will be logged in the terminal. 
 
 
 ## Installation 
