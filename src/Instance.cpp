@@ -7,9 +7,9 @@
 
 int RANDOM_WALK_STEPS = 100000;
 
-Instance::Instance(const string& map_fname, const string& agent_fname, const string& state_json,
+Instance::Instance(const string& map_fname, const string& state_json,
 	int num_of_agents, int num_of_rows, int num_of_cols, int num_of_obstacles, int warehouse_width):
-	map_fname(map_fname), agent_fname(agent_fname), num_of_agents(num_of_agents), state_json(state_json)
+	map_fname(map_fname), num_of_agents(num_of_agents), state_json(state_json)
 {
 	bool succ = loadMap();
 	if (!succ)
@@ -27,45 +27,21 @@ Instance::Instance(const string& map_fname, const string& agent_fname, const str
 		}
 	}
 
-	// TODO 1
-	// generateRandomAgents(warehouse_width);
-	// saveNathan();
 
-	if (state_json == ""){
-		succ = loadAgents();
-		if (!succ)
-		{
-			if (num_of_agents > 0)
-			{
-				generateRandomAgents(warehouse_width);
-				// saveAgents();
-				// saveNathan();
-			}
-			else
-			{
-				cerr << "Agent file " << agent_fname << " not found." << endl;
-				exit(-1);
-			}
-		}
+	using json = nlohmann::json;
+	std::ifstream f(state_json);
+	json data = json::parse(f);
+	start_locations.resize(num_of_agents);
+	goal_locations.resize(num_of_agents);
+
+	for (auto & [key, value] : data.items()){
+		Path path;
+		int id = std::stoi(key);
+			start_locations[id] = linearizeCoordinate(value.front()[0], value.front()[1]); // row col
+			goal_locations[id] = linearizeCoordinate(value.back()[0], value.back()[1]);
 	}
-	else{
-		using json = nlohmann::json;
-        std::ifstream f(state_json);
-        json data = json::parse(f);
-		start_locations.resize(num_of_agents);
-		goal_locations.resize(num_of_agents);
-
-        for (auto & [key, value] : data.items()){
-            Path path;
-            int id = std::stoi(key);
-			 start_locations[id] = linearizeCoordinate(value.front()[0], value.front()[1]); // row col
-			 goal_locations[id] = linearizeCoordinate(value.back()[0], value.back()[1]);
-        }
-        succ = true;
-        cout << "init instance based on " << state_json << endl;
-	}
-
-
+	succ = true;
+	cout << "init instance based on " << state_json << endl;
 
 }
 
@@ -377,9 +353,6 @@ bool Instance::loadAgents()
 	return false;
 
 	getline(myfile, line);
-//    if (line.size() < num_of_agents){
-//        return false;
-//    }
 
 	if (line[0] == 'v') // Nathan's benchmark
 	{

@@ -34,12 +34,10 @@ To run LNS with rule-based heuristics, use the following command:
 ./rule-based-lns --destroyStrategy [Intersection / RandomWalk / Random / Adaptive / RandomWalkProb ] \
 --uniform_neighbor 0 --neighborSize 32 \
 --map random-32-32-20.map \
---agents random-32-32-20-random-1.scen \
 --state map-random-32-32-20-scene-1-agent-150.json \
 --agentNum 150 \
 --cutoffTime 300
 ```
-- agents (required): the .scen file downloaded from the MAPF benchmark
 - map (required): the .map file downloaded from the MAPF benchmark
 - agentNum (required): number of agents in the current map
 - state (required): path to the current state JSON file, key: agent id, value: list of agent location in 2D x, y coordinate, check [map-random-32-32-20-scene-1-agent-150.json](map-random-32-32-20-scene-1-agent-150.json) as an example

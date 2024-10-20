@@ -16,7 +16,7 @@ int main(int argc, char** argv)
         ("state", po::value<string>()->required(), "json file that stores the state")
         ("uniform_neighbor", po::value<int>()->default_value(0), "(0) fixed nb_size specified by --neighborSize (1) nb_size sample from {2,4,8,16,32} (2) nb_size sample from 5~16")
 		("map,m", po::value<string>()->required(), "input file for map")
-		("agents,a", po::value<string>()->required(), "input file for agents")
+		// ("agents,a", po::value<string>()->required(), "input file for agents")
 		("agentNum,k", po::value<int>()->required(), "number of agents")
         ("log_step", po::value<int>()->default_value(1), "number of agents")
         ("output,o", po::value<string>(), "output file")
@@ -61,7 +61,7 @@ int main(int argc, char** argv)
 
 	srand(vm["seed"].as<int>()); 
 
-	Instance instance(vm["map"].as<string>(), vm["agents"].as<string>(), vm["state"].as<string>(),
+	Instance instance(vm["map"].as<string>(), vm["state"].as<string>(),
 		vm["agentNum"].as<int>());
     double time_limit = vm["cutoffTime"].as<double>();
     int screen = vm["screen"].as<int>();
