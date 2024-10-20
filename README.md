@@ -1,7 +1,7 @@
 # Prioritize Planning (PP) Replan for [Benchmarking Large Neighborhood Search for Multi-Agent Path Finding](https://github.com/ChristinaTan0704/mapf-lns-benchmark/tree/main)
 
 
-The PP replan function is extracted from [MAPF-LNS](https://github.com/Jiaoyang-Li/MAPF-LNS). The input to the executable is a JSON file containing the complete feasible solution and a list of agents to replan. The algorithm maintains the paths of the remaining agents unchanged, treating them as space-time obstacles, and only replans the paths for the agents in the removal set using the prioritize planning (pp) algorithm.
+The PP replan function is extracted from [rule-based MAPF-LNS](https://github.com/Jiaoyang-Li/MAPF-LNS). The input to the executable is a JSON file containing the complete feasible solution and a list of agents to replan. The algorithm maintains the paths of the remaining agents unchanged, treating them as space-time obstacles, and only replans the paths for the agents in the removal set using the prioritize planning (pp) algorithm.
 
 
 
