@@ -33,7 +33,8 @@ int main(int argc, char** argv)
 		("solver", po::value<string>()->default_value("LNS"), "solver (LNS, A-BCBS, A-EECBS)")
 
         // params for LNS
-        ("effi_factor", po::value<double>()->default_value(0.1), "weight for nb efficiency")
+		("nb_prob", po::value<bool>()->default_value(true), "use nb probability other wise use max reward")
+        ("effi_factor", po::value<double>()->default_value(0.01), "weight for nb efficiency")
         ("nbAlgo", po::value<string>()->default_value("RLE"),
                 "nb selection algorithm (RLE, UCB, TS)")
         ("neighborSize", po::value<int>()->default_value(5), "Size of the neighborhood")
@@ -78,6 +79,7 @@ int main(int argc, char** argv)
                 vm["destroyStrategy"].as<string>(),
                 vm["neighborSize"].as<int>(),
                 vm["maxIterations"].as<int>(), screen, pipp_option);
+        lns.nb_prob = vm["nb_prob"].as<bool>();
         lns.uniform_neighbor = vm["uniform_neighbor"].as<int>();
         lns.nb_algo_name = vm["nbAlgo"].as<string>();
         lns.tabu_discount = vm["tabu_discount"].as<double>();

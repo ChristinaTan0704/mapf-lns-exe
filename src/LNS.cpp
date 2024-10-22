@@ -273,8 +273,9 @@ bool LNS::run()
             nb_counts[selected_neighbor] = nb_counts[selected_neighbor] + 1;
             nb_sumTimes[selected_neighbor] = nb_sumTimes[selected_neighbor] + one_round_time;
             if (neighbor.old_sum_of_costs > neighbor.sum_of_costs ){
-                double efficiency_weight = effi_factor / (nb_sumTimes[selected_neighbor]/nb_counts[selected_neighbor]);
+                double efficiency_weight = sqrt(effi_factor / (nb_sumTimes[selected_neighbor]/nb_counts[selected_neighbor]));
                 double iteration_weight = static_cast<double>(init_sum_of_delay - sum_of_delay + 1) / static_cast<double>(init_sum_of_delay);
+                cout << "efficiency_weight " << efficiency_weight << " iteration_weight " << iteration_weight << endl;
                 nb_weights[selected_neighbor] =
                         reaction_factor * (neighbor.old_sum_of_costs - neighbor.sum_of_costs) * efficiency_weight * iteration_weight / (neighbor.agents.size())
                         + (1 - reaction_factor) * nb_weights[selected_neighbor];
@@ -289,8 +290,9 @@ bool LNS::run()
             removal_start = Time::now();
             nb_counts[selected_neighbor] = nb_counts[selected_neighbor] + 1;
             nb_sumTimes[selected_neighbor] = nb_sumTimes[selected_neighbor] + one_round_time;
-            double efficiency_weight = effi_factor / (nb_sumTimes[selected_neighbor]/nb_counts[selected_neighbor]);
+            double efficiency_weight = sqrt(effi_factor / (nb_sumTimes[selected_neighbor]/nb_counts[selected_neighbor]));
             double iteration_weight = static_cast<double>(init_sum_of_delay - sum_of_delay + 1) / static_cast<double>(init_sum_of_delay);
+                cout << "efficiency_weight " << efficiency_weight << " iteration_weight " << iteration_weight << endl;
             if (neighbor.old_sum_of_costs > neighbor.sum_of_costs ){
                 auto one_reward = nb_rewards[selected_neighbor] + iteration_weight * efficiency_weight * (neighbor.old_sum_of_costs - neighbor.sum_of_costs);
                 nb_rewards[selected_neighbor] = one_reward;
@@ -1261,33 +1263,25 @@ void LNS::chooseNeighborSizebyBanditAdpative()
     if (nb_algo_name == "UCB"){
         double total_counts = iteration_stats.size() - 1;
         nb_weights = compute_confidence_bound(nb_rewards, nb_counts, total_counts);
-        cout << "nb_weights = ";
-        for (const auto& h : nb_weights)
-            cout << h << ",";
-        cout << endl;
-        selected_neighbor = std::distance(nb_weights.begin(), std::max_element(nb_weights.begin(), nb_weights.end()));
 
     }
     else if (nb_algo_name == "TS"){
         nb_weights = thompson_sampling(nb_rewards, nb_rewards_square, nb_counts);
-        cout << "nb_weights = ";
-        for (const auto& h : nb_weights)
-            cout << h << ",";
-        cout << endl;
-        selected_neighbor = std::distance(nb_weights.begin(), std::max_element(nb_weights.begin(), nb_weights.end()));
     }
     else if (nb_algo_name == "RLE"){
         nb_weights = compute_avg_reward(nb_rewards, nb_counts);
 
+    }
+
+    cout << "nb_weights = ";
+    for (const auto& h : nb_weights)
+        cout << h << ",";
+    cout << endl;
+
+    if (nb_prob){
         double sum = 0;
         for (const auto& h : nb_weights)
             sum += h;
-        
-        cout << "nb_weights = ";
-        for (const auto& h : nb_weights)
-            cout << h << ",";
-        cout << endl;
-
         double r = (double) rand() / RAND_MAX;
         double threshold = nb_weights[0];
         selected_neighbor = 0;
@@ -1296,7 +1290,11 @@ void LNS::chooseNeighborSizebyBanditAdpative()
             selected_neighbor++;
             threshold += nb_weights[selected_neighbor];
         }
+    }else{
+        selected_neighbor = std::distance(nb_weights.begin(), std::max_element(nb_weights.begin(), nb_weights.end()));
     }
+
+
     switch (selected_neighbor)
     {
         case 0 : neighbor_size = 4; break;

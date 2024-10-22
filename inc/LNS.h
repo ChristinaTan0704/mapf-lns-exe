@@ -45,6 +45,7 @@ struct Neighbor
 class LNS
 {
 public:
+    bool nb_prob;
     vector<Agent> agents;
     vector<int> delayed_agents;
     vector<int> delay_list;
