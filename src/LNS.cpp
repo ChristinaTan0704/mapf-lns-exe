@@ -164,11 +164,7 @@ bool LNS::run()
         }
         else if (uniform_neighbor==3){ // simple adaptive
             chooseNeighborSizebySimpleAdaptive();
-            neighbor_size = 16;
-//            cout << "selected_neighbor : " << selected_neighbor << " neighbor_size : " << neighbor_size << endl;
         }
-        removal_start = Time::now();// TODO remove
-        removal_start = Time::now();// TODO remove
 
         if (ALNS){
             chooseDestroyHeuristicbyALNS();
@@ -665,8 +661,6 @@ void LNS::chooseNeighborSizebySimpleAdaptive()
     double sum = 0;
     for (const auto& h : nb_weights)
         sum += h;
-    // if (screen >= 2)
-    // {
     cout << "nb_weights = ";
     for (const auto& h : nb_weights)
         cout << h << ",";

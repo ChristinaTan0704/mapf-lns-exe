@@ -77,6 +77,7 @@ int main(int argc, char** argv)
                 vm["neighborSize"].as<int>(),
                 vm["maxIterations"].as<int>(), screen, pipp_option);
         lns.uniform_neighbor = vm["uniform_neighbor"].as<int>();
+        lns.nb_algo_name = vm["nbAlgo"].as<string>();
         lns.tabu_discount = vm["tabu_discount"].as<double>();
         lns.state_json = vm["state"].as<string>();
         lns.log_step = vm["log_step"].as<int>();

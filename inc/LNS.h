@@ -83,6 +83,7 @@ private:
     double time_limit;
     string init_algo_name;
     string replan_algo_name;
+    string nb_algo_name;
     int screen;
     destroy_heuristic destroy_strategy = RANDOMWALK;
     int neighbor_size;
