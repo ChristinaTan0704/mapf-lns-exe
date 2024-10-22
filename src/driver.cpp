@@ -4,7 +4,8 @@
 #include "AnytimeBCBS.h"
 #include "AnytimeEECBS.h"
 #include "PIBT/pibt.h"
-// --destroyStrategy RandomWalkProb --uniform_neighbor 3 --neighborSize 4                 --map /local-scratchb/jiaqit/exp/mapf-lns-benchmark/data/map/den520d.map                 --state /local-scratchb/jiaqit/exp/mapf-lns-benchmark/data/lns2_init_states/map-den520d-scene-24-agent-900.json                 --agentNum 900  --maxIterations 100  --cutoffTime 300
+// --uniform_neighbor 4 --nbAlgo TS --neighborSize 4 --destroyStrategy RandomWalkProb --map /local-scratchb/jiaqit/exp/mapf-lns-benchmark/data/map/empty-32-32.map                 --state /local-scratchb/jiaqit/exp/mapf-lns-benchmark/data/lns2_init_states/map-empty-32-32-scene-24-agent-300.json                 --agentNum 300  --maxIterations 100  --cutoffTime 300
+// --uniform_neighbor 4 --nbAlgo TS --neighborSize 4 --destroyStrategy RandomWalkProb --map /local-scratchb/jiaqit/exp/mapf-lns-benchmark/data/map/den520d.map                 --state /local-scratchb/jiaqit/exp/mapf-lns-benchmark/data/lns2_init_states/map-den520d-scene-24-agent-900.json                 --agentNum 900  --maxIterations 100  --cutoffTime 300
 // --destroyStrategy RandomWalkProb --uniform_neighbor 3 --neighborSize 4                 --map /local-scratchb/jiaqit/exp/mapf-lns-benchmark/data/map/empty-32-32.map                 --state /local-scratchb/jiaqit/exp/mapf-lns-benchmark/data/lns2_init_states/map-empty-32-32-scene-24-agent-300.json                 --agentNum 300  --maxIterations 100  --cutoffTime 300
 /* Main function */
 int main(int argc, char** argv)
@@ -33,8 +34,8 @@ int main(int argc, char** argv)
 
         // params for LNS
         ("effi_factor", po::value<double>()->default_value(0.1), "weight for nb efficiency")
-        ("nbAlgo", po::value<string>()->default_value("Roulette"),
-                "nb selection algorithm (Roulette, UCB1, Thompson)")
+        ("nbAlgo", po::value<string>()->default_value("RLE"),
+                "nb selection algorithm (RLE, UCB, TS)")
         ("neighborSize", po::value<int>()->default_value(5), "Size of the neighborhood")
         ("seed", po::value<int>()->default_value(0), "Size of the neighborhood")
         ("maxIterations", po::value<int>()->default_value(1000000), "maximum number of iterations")

@@ -3,6 +3,8 @@
 #include <random>
 #include <array>
 #include <nlohmann/json.hpp>
+#include <algorithm> // for std::max_element
+#include <cmath>
 
 int getRandomFromSetExp() {
     std::array<int, 4> values = {4, 8, 16, 32};
@@ -38,6 +40,7 @@ LNS::LNS(const Instance& instance, double time_limit, string init_algo_name, str
     nb_rewards.assign(4 * num_neighbor_sizes, 0);
     nb_counts.assign(4 * num_neighbor_sizes, 1);
     nb_sumTimes.assign(4 * num_neighbor_sizes, 0);
+    nb_rewards_square.assign(4 * num_neighbor_sizes, 0);
     if (destory_name == "Adaptive")
     {
         ALNS = true;
@@ -271,7 +274,7 @@ bool LNS::run()
             nb_sumTimes[selected_neighbor] = nb_sumTimes[selected_neighbor] + one_round_time;
             if (neighbor.old_sum_of_costs > neighbor.sum_of_costs ){
                 double efficiency_weight = effi_factor / (nb_sumTimes[selected_neighbor]/nb_counts[selected_neighbor]);
-                double iteration_weight = (init_sum_of_delay - sum_of_delay + 1) / init_sum_of_delay;
+                double iteration_weight = static_cast<double>(init_sum_of_delay - sum_of_delay + 1) / static_cast<double>(init_sum_of_delay);
                 nb_weights[selected_neighbor] =
                         reaction_factor * (neighbor.old_sum_of_costs - neighbor.sum_of_costs) * efficiency_weight * iteration_weight / (neighbor.agents.size())
                         + (1 - reaction_factor) * nb_weights[selected_neighbor];
@@ -287,9 +290,11 @@ bool LNS::run()
             nb_counts[selected_neighbor] = nb_counts[selected_neighbor] + 1;
             nb_sumTimes[selected_neighbor] = nb_sumTimes[selected_neighbor] + one_round_time;
             double efficiency_weight = effi_factor / (nb_sumTimes[selected_neighbor]/nb_counts[selected_neighbor]);
-            double iteration_weight = (init_sum_of_delay - sum_of_delay + 1) / init_sum_of_delay;
+            double iteration_weight = static_cast<double>(init_sum_of_delay - sum_of_delay + 1) / static_cast<double>(init_sum_of_delay);
             if (neighbor.old_sum_of_costs > neighbor.sum_of_costs ){
-                nb_rewards[selected_neighbor] = nb_rewards[selected_neighbor] + iteration_weight * efficiency_weight * (neighbor.old_sum_of_costs - neighbor.sum_of_costs);
+                auto one_reward = nb_rewards[selected_neighbor] + iteration_weight * efficiency_weight * (neighbor.old_sum_of_costs - neighbor.sum_of_costs);
+                nb_rewards[selected_neighbor] = one_reward;
+                nb_rewards_square[selected_neighbor] = one_reward * one_reward;
             }
             removal_time +=  ((fsec)(Time::now() - removal_start)).count() ;
 
@@ -1154,19 +1159,75 @@ void LNS::writePathsToFile(string file_name) const
 
 std::vector<double> compute_confidence_bound(const std::vector<double>& nb_rewards, const std::vector<double>& nb_counts, double total_counts) {
     std::vector<double> confidence_bound(nb_rewards.size(), 1.0);  // Initialize confidence bounds
-
-
     
-    // Step 2: Calculate UCB for each arm
     for (size_t i = 0; i < nb_rewards.size(); ++i) {
         if (nb_counts[i] > 0) {  // Ensure that arm has been played at least once
-            double average_reward = nb_rewards[i] / nb_counts[i];  // Average reward for arm i
+            double average_reward = (nb_rewards[i] + 1.0) / nb_counts[i];  // Average reward for arm i
             double exploration_term = sqrt(2 * log(total_counts) / nb_counts[i]);  // Exploration term
             confidence_bound[i] = average_reward + exploration_term;  // UCB formula
         }
     }
 
     return confidence_bound;
+}
+
+
+std::vector<double> compute_avg_reward(const std::vector<double>& nb_rewards, const std::vector<double>& nb_counts) {
+    std::vector<double> avg_reward(nb_rewards.size(), 1.0);  // Initialize confidence bounds
+    
+    for (size_t i = 0; i < nb_rewards.size(); ++i) {
+        if (nb_counts[i] > 0) {  // Ensure that arm has been played at least once
+            avg_reward[i] = (nb_rewards[i] + 1.0) / nb_counts[i];  // Average reward for arm i
+        }
+    }
+
+    return avg_reward;
+}
+
+
+std::vector<double> thompson_sampling(const vector<double>& nb_rewards, 
+                                 const vector<double>& nb_rewards_square, 
+                                 const vector<double>& nb_counts) {
+    size_t num_arms = nb_rewards.size();
+    vector<double> sampled_p(num_arms);
+
+    // Parameters for known reward variance (you can adjust this)
+    double known_variance = 1.0; // Known reward variance (sigma_r^2)
+
+    // Create a random number generator for normal distribution sampling
+    std::random_device rd;
+    std::mt19937 gen(rd());
+
+    // Iterate over each arm to sample from the posterior
+    for (size_t i = 0; i < num_arms; ++i) {
+        if (nb_counts[i] == 0) {
+            // If no observations yet, set to 0 or some default prior
+            sampled_p[i] = 0.0;
+        } else {
+            // Calculate posterior mean and variance
+            double mean_reward = nb_rewards[i] / nb_counts[i];  // Mean reward
+            double mean_squared_reward = nb_rewards_square[i] / nb_counts[i];  // Mean of squared rewards
+
+            // Posterior variance (based on sample variance formula)
+            double variance_reward = mean_squared_reward - pow(mean_reward, 2);  // Sample variance
+
+            // Bayesian update for posterior variance: posterior variance shrinks as nb_counts[i] increases
+            double posterior_variance = known_variance / nb_counts[i];  // Posterior variance (simplified)
+            double posterior_mean = mean_reward;  // Posterior mean (same as sample mean)
+
+            // Define normal distribution with the posterior mean and standard deviation
+            std::normal_distribution<> d(posterior_mean, sqrt(posterior_variance));
+
+            // Sample from the posterior
+            sampled_p[i] = d(gen);
+
+            if (sampled_p[i] < 0) {
+                sampled_p[i] = 0.01;
+            }
+        }
+    }
+
+    return sampled_p;
 }
 
 
@@ -1199,31 +1260,49 @@ void LNS::chooseNeighborSizebyBanditAdpative()
 
     if (nb_algo_name == "UCB"){
         double total_counts = iteration_stats.size() - 1;
-        vector<double> confidence_bound = compute_confidence_bound(nb_rewards, nb_counts, total_counts);
+        nb_weights = compute_confidence_bound(nb_rewards, nb_counts, total_counts);
+        cout << "nb_weights = ";
+        for (const auto& h : nb_weights)
+            cout << h << ",";
+        cout << endl;
+        selected_neighbor = std::distance(nb_weights.begin(), std::max_element(nb_weights.begin(), nb_weights.end()));
+
+    }
+    else if (nb_algo_name == "TS"){
+        nb_weights = thompson_sampling(nb_rewards, nb_rewards_square, nb_counts);
+        cout << "nb_weights = ";
+        for (const auto& h : nb_weights)
+            cout << h << ",";
+        cout << endl;
+        selected_neighbor = std::distance(nb_weights.begin(), std::max_element(nb_weights.begin(), nb_weights.end()));
+    }
+    else if (nb_algo_name == "RLE"){
+        nb_weights = compute_avg_reward(nb_rewards, nb_counts);
+
         double sum = 0;
-        for (const auto& h : confidence_bound)
+        for (const auto& h : nb_weights)
             sum += h;
         
-        cout << "confidence_bound = ";
-        for (const auto& h : confidence_bound)
+        cout << "nb_weights = ";
+        for (const auto& h : nb_weights)
             cout << h << ",";
         cout << endl;
 
         double r = (double) rand() / RAND_MAX;
-        double threshold = confidence_bound[0];
+        double threshold = nb_weights[0];
         selected_neighbor = 0;
         while (threshold < r * sum)
         {
             selected_neighbor++;
-            threshold += confidence_bound[selected_neighbor];
+            threshold += nb_weights[selected_neighbor];
         }
-        switch (selected_neighbor)
-        {
-            case 0 : neighbor_size = 4; break;
-            case 1 : neighbor_size = 8; break;
-            case 2 : neighbor_size = 16; break;
-            case 3 : neighbor_size = 32; break;
-            default : cerr << "ERROR" << endl; exit(-1);
-        }
+    }
+    switch (selected_neighbor)
+    {
+        case 0 : neighbor_size = 4; break;
+        case 1 : neighbor_size = 8; break;
+        case 2 : neighbor_size = 16; break;
+        case 3 : neighbor_size = 32; break;
+        default : cerr << "ERROR" << endl; exit(-1);
     }
 }
