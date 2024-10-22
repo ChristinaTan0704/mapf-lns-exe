@@ -20,12 +20,12 @@ touch $cmd_file
 
 # Define arrays for all parameters
 agent_num=(500 350 350 600 900 750)
-map_name=("empty-32-32" "random-32-32-20" "warehouse-10-20-10-2-1" "ost003d" "den520d" "Paris_1_256")
+map_name=("empty-32-32"  "den520d" ) # "random-32-32-20" "warehouse-10-20-10-2-1" "ost003d" "Paris_1_256"
 scene_num=(1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25)
 uniform_neighbor_neighborSize=("1 4" "0 4" "0 8" "0 16" "0 32" "3 4")
 
 # Loop through all combinations of parameters and add commands to the list
-for map_idx in {1..6}; do
+for map_idx in {1..${#map_name[@]}}; do
     for scene in "${scene_num[@]}"; do
         for neigh_pair in "${uniform_neighbor_neighborSize[@]}"; do
             neighbor=$(echo $neigh_pair | cut -d' ' -f1)
