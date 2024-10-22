@@ -40,7 +40,7 @@ for map_idx in {1..6}; do
             log_file="output/nb_baseline/${state_basename}_NBopt_${neighbor}_NBsize_${size}.log"
 
             # Construct the command string and append it to the cmd_file
-            echo "exe/lns-rule-based/rule-based-lns --destroyStrategy RandomWalkProb \
+            echo "./rule-based-lns --destroyStrategy RandomWalkProb \
                 --uniform_neighbor $neighbor --neighborSize $size \
                 --map ${map_path} \
                 --state $state \
