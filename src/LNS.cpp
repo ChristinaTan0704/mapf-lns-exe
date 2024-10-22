@@ -5,7 +5,7 @@
 #include <nlohmann/json.hpp>
 
 int getRandomFromSetExp() {
-    std::array<int, 5> values = {2, 4, 8, 16, 32};
+    std::array<int, 4> values = {4, 8, 16, 32};
     // Random number generator
     std::random_device rd;
     std::mt19937 gen(rd());
@@ -34,6 +34,7 @@ LNS::LNS(const Instance& instance, double time_limit, string init_algo_name, str
 {
     start_time = Time::now();
     destroy_weights.assign(3 * num_neighbor_sizes, 1);
+    nb_weights.assign(4 * num_neighbor_sizes, 1);
 
     if (destory_name == "Adaptive")
     {
@@ -144,9 +145,16 @@ bool LNS::run()
     double clipped_time = 0;
     auto removal_start = Time::now();
     double removal_time = 0;
-
+    double one_round_time = 0;
     while (lns_runtime < time_limit or iteration_stats.size() <= num_of_iterations)
     {
+
+        one_round_time = 0;
+        runtime =((fsec)(Time::now() - start_time)).count();
+        if(screen >= 1)
+            validateSolution();
+        removal_start = Time::now();
+
         removal_time = 0;
         if (uniform_neighbor==1){ // sample from {2,4,8,16,32}
             neighbor_size =getRandomFromSetExp();
@@ -154,19 +162,19 @@ bool LNS::run()
         else if (uniform_neighbor==2){ // sample a random int from range 5 ~ 16
             neighbor_size =getRandomFromRange();
         }
+        else if (uniform_neighbor==3){ // simple adaptive
+            chooseNeighborSizebySimpleAdaptive();
+            neighbor_size = 16;
+//            cout << "selected_neighbor : " << selected_neighbor << " neighbor_size : " << neighbor_size << endl;
+        }
+        removal_start = Time::now();// TODO remove
+        removal_start = Time::now();// TODO remove
 
-        runtime =((fsec)(Time::now() - start_time)).count();
-        if(screen >= 1)
-            validateSolution();
         if (ALNS){
-            removal_start = Time::now();
             chooseDestroyHeuristicbyALNS();
-            removal_time +=  ((fsec)(Time::now() - removal_start)).count() ;
         }
 
 
-
-        removal_start = Time::now();
         switch (destroy_strategy)
         {
             case RANDOMWALK:
@@ -194,6 +202,7 @@ bool LNS::run()
                 exit(-1);
         }
         removal_time +=  ((fsec)(Time::now() - removal_start)).count() ;
+        one_round_time +=  ((fsec)(Time::now() - removal_start)).count() ;
         if(!succ)
             continue;
 
@@ -223,6 +232,7 @@ bool LNS::run()
         if (succ) improved = true;
 
         auto replan_time = ((fsec)(Time::now() - replan_start_time)).count();
+        one_round_time +=  ((fsec)(Time::now() - replan_start_time)).count();
         if (replan_time > replan_time_limit){
             replan_time = replan_time_limit;
         }
@@ -231,12 +241,28 @@ bool LNS::run()
         {
             removal_start = Time::now();
             if (neighbor.old_sum_of_costs > neighbor.sum_of_costs )
-                destroy_weights[selected_neighbor] =
+                destroy_weights[select_heuristic] =
                         reaction_factor * (neighbor.old_sum_of_costs - neighbor.sum_of_costs) / neighbor.agents.size()
-                        + (1 - reaction_factor) * destroy_weights[selected_neighbor];
+                        + (1 - reaction_factor) * destroy_weights[select_heuristic];
             else
-                destroy_weights[selected_neighbor] =
-                        (1 - decay_factor) * destroy_weights[selected_neighbor];
+                destroy_weights[select_heuristic] =
+                        (1 - decay_factor) * destroy_weights[select_heuristic];
+            removal_time +=  ((fsec)(Time::now() - removal_start)).count() ;
+        }
+        // cout << "one_round_time : " << one_round_time << endl;
+        if (uniform_neighbor == 3){
+            // one_round_time
+            removal_start = Time::now();
+            if (neighbor.old_sum_of_costs > neighbor.sum_of_costs ){
+                double efficiency_weight = 0.1/one_round_time;
+                nb_weights[selected_neighbor] =
+                        reaction_factor * (neighbor.old_sum_of_costs - neighbor.sum_of_costs) * efficiency_weight / (neighbor.agents.size())
+                        + (1 - reaction_factor) * nb_weights[selected_neighbor];
+            }
+            else{
+                nb_weights[selected_neighbor] = (1 - decay_factor*one_round_time) * nb_weights[selected_neighbor];
+            }
+                
             removal_time +=  ((fsec)(Time::now() - removal_start)).count() ;
         }
 
@@ -634,6 +660,38 @@ void LNS::updatePIBTResult(const PIBT_Agents& A,vector<int> shuffled_agents){
     neighbor.sum_of_costs =soc;
 }
 
+void LNS::chooseNeighborSizebySimpleAdaptive()
+{
+    double sum = 0;
+    for (const auto& h : nb_weights)
+        sum += h;
+    // if (screen >= 2)
+    // {
+    cout << "nb_weights = ";
+    for (const auto& h : nb_weights)
+        cout << h << ",";
+    cout << endl;
+    // }
+    double r = (double) rand() / RAND_MAX;
+    double threshold = nb_weights[0];
+    selected_neighbor = 0;
+    while (threshold < r * sum)
+    {
+        selected_neighbor++;
+        threshold += nb_weights[selected_neighbor];
+    }
+    switch (selected_neighbor)
+    {
+        case 0 : neighbor_size = 4; break;
+        case 1 : neighbor_size = 8; break;
+        case 2 : neighbor_size = 16; break;
+        case 3 : neighbor_size = 32; break;
+        default : cerr << "ERROR" << endl; exit(-1);
+    }
+}
+
+
+
 void LNS::chooseDestroyHeuristicbyALNS()
 {
     double sum = 0;
@@ -647,13 +705,13 @@ void LNS::chooseDestroyHeuristicbyALNS()
     }
     double r = (double) rand() / RAND_MAX;
     double threshold = destroy_weights[0];
-    selected_neighbor = 0;
+    select_heuristic = 0;
     while (threshold < r * sum)
     {
-        selected_neighbor++;
-        threshold += destroy_weights[selected_neighbor];
+        select_heuristic++;
+        threshold += destroy_weights[select_heuristic];
     }
-    switch (selected_neighbor / num_neighbor_sizes)
+    switch (select_heuristic / num_neighbor_sizes)
     {
         case 0 : destroy_strategy = RANDOMWALK; break;
         case 1 : destroy_strategy = INTERSECTION; break;

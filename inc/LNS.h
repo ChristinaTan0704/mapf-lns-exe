@@ -104,7 +104,9 @@ private:
     double decay_factor = 0.01;
     double reaction_factor = 0.01;
     vector<double> destroy_weights;
+    vector<double> nb_weights;
     int selected_neighbor;
+    int select_heuristic;
 
     bool runEECBS();
     bool runCBS();
@@ -119,6 +121,7 @@ private:
     void updatePIBTResult(const PIBT_Agents& A,vector<int> shuffled_agents);
 
     void chooseDestroyHeuristicbyALNS();
+    void chooseNeighborSizebySimpleAdaptive();
 
     bool generateNeighborByRandomWalk();
     bool generateNeighborByRandomWalkProbSelect();
