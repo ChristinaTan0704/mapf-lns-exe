@@ -75,7 +75,13 @@ public:
     void writeResultToFile(string file_name) const;
     void writePathsToFile(string file_name) const;
     string getSolverName() const { return "LNS(" + init_algo_name + ";" + replan_algo_name + ")"; }
+    double effi_factor = 0.1;
+    string nb_algo_name;
+
 private:
+
+
+
     int num_neighbor_sizes = 1; //4; // so the neighbor size could be 2, 4, 8, 16
 
     // input params
@@ -83,7 +89,7 @@ private:
     double time_limit;
     string init_algo_name;
     string replan_algo_name;
-    string nb_algo_name;
+
     int screen;
     destroy_heuristic destroy_strategy = RANDOMWALK;
     int neighbor_size;
@@ -106,6 +112,8 @@ private:
     double reaction_factor = 0.01;
     vector<double> destroy_weights;
     vector<double> nb_weights;
+    vector<double> nb_counts;
+    vector<double> nb_rewards;
     int selected_neighbor;
     int select_heuristic;
 
@@ -123,6 +131,7 @@ private:
 
     void chooseDestroyHeuristicbyALNS();
     void chooseNeighborSizebySimpleAdaptive();
+    void chooseNeighborSizebyBanditAdpative();
 
     bool generateNeighborByRandomWalk();
     bool generateNeighborByRandomWalkProbSelect();

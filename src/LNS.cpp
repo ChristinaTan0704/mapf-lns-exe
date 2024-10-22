@@ -35,7 +35,8 @@ LNS::LNS(const Instance& instance, double time_limit, string init_algo_name, str
     start_time = Time::now();
     destroy_weights.assign(3 * num_neighbor_sizes, 1);
     nb_weights.assign(4 * num_neighbor_sizes, 1);
-
+    nb_rewards.assign(4 * num_neighbor_sizes, 0);
+    nb_counts.assign(4 * num_neighbor_sizes, 1);
     if (destory_name == "Adaptive")
     {
         ALNS = true;
@@ -156,7 +157,7 @@ bool LNS::run()
         removal_start = Time::now();
 
         removal_time = 0;
-        if (uniform_neighbor==1){ // sample from {2,4,8,16,32}
+        if (uniform_neighbor==1){ // sample from {4,8,16,32}
             neighbor_size =getRandomFromSetExp();
         }
         else if (uniform_neighbor==2){ // sample a random int from range 5 ~ 16
@@ -164,6 +165,14 @@ bool LNS::run()
         }
         else if (uniform_neighbor==3){ // simple adaptive
             chooseNeighborSizebySimpleAdaptive();
+        }
+        else if (uniform_neighbor==4){ // bandit based algorithm
+            if (iteration_stats.size() != 1){
+                chooseNeighborSizebyBanditAdpative();
+            }else{
+                neighbor_size =getRandomFromSetExp();
+            }
+        
         }
 
         if (ALNS){
@@ -245,12 +254,10 @@ bool LNS::run()
                         (1 - decay_factor) * destroy_weights[select_heuristic];
             removal_time +=  ((fsec)(Time::now() - removal_start)).count() ;
         }
-        // cout << "one_round_time : " << one_round_time << endl;
         if (uniform_neighbor == 3){
-            // one_round_time
             removal_start = Time::now();
             if (neighbor.old_sum_of_costs > neighbor.sum_of_costs ){
-                double efficiency_weight = 0.1/one_round_time;
+                double efficiency_weight = effi_factor / one_round_time;
                 nb_weights[selected_neighbor] =
                         reaction_factor * (neighbor.old_sum_of_costs - neighbor.sum_of_costs) * efficiency_weight / (neighbor.agents.size())
                         + (1 - reaction_factor) * nb_weights[selected_neighbor];
@@ -261,6 +268,14 @@ bool LNS::run()
                 
             removal_time +=  ((fsec)(Time::now() - removal_start)).count() ;
         }
+        if (uniform_neighbor == 4){
+            double efficiency_weight = effi_factor / one_round_time;
+            if (neighbor.old_sum_of_costs > neighbor.sum_of_costs ){
+                nb_rewards[selected_neighbor] = nb_rewards[selected_neighbor] + efficiency_weight * (neighbor.old_sum_of_costs - neighbor.sum_of_costs);
+            }
+            nb_counts[selected_neighbor] = nb_counts[selected_neighbor] + 1;
+        }
+
 
         if (iteration_stats.size() <= 2000 or  iteration_stats.size() % log_step == 0 or replan_time > replan_time_limit){
             cout << "num_of_low_level : " << num_of_low_level << " lns_runtime : " << lns_runtime << " replan_time : " <<  replan_time << " neighbor_size  : " << neighbor_size << " group_size : " << neighbor.agents.size() << " removal_time : " << removal_time ;
@@ -282,7 +297,7 @@ bool LNS::run()
         if (iteration_stats.size() <= 2000 or  iteration_stats.size() % log_step == 0 or replan_time > replan_time_limit){
             cout << "Iteration " << iteration_stats.size() << ", "
                  << "group size = " << neighbor.agents.size() << ", "
-                 << "solution cost = " << sum_of_costs << ", sum_of_delay = " << sum_of_delay << endl;
+                 << "solution cost = " << sum_of_costs << ", sum_of_delay = " << sum_of_delay << ", lns_runtime = " << lns_runtime << endl;
         }
         iteration_stats.emplace_back(neighbor.agents.size(), sum_of_costs, runtime, replan_algo_name);
     }
@@ -1120,4 +1135,57 @@ void LNS::writePathsToFile(string file_name) const
         output << endl;
     }
     output.close();
+}
+
+
+std::vector<double> compute_confidence_bound(const std::vector<double>& nb_rewards, const std::vector<double>& nb_counts, double total_counts) {
+    std::vector<double> confidence_bound(nb_rewards.size(), 1.0);  // Initialize confidence bounds
+
+
+    
+    // Step 2: Calculate UCB for each arm
+    for (size_t i = 0; i < nb_rewards.size(); ++i) {
+        if (nb_counts[i] > 0) {  // Ensure that arm has been played at least once
+            double average_reward = nb_rewards[i] / nb_counts[i];  // Average reward for arm i
+            double exploration_term = sqrt(2 * log(total_counts) / nb_counts[i]);  // Exploration term
+            confidence_bound[i] = average_reward + exploration_term;  // UCB formula
+        }
+    }
+
+    return confidence_bound;
+}
+
+
+void LNS::chooseNeighborSizebyBanditAdpative()
+{
+
+    if (nb_algo_name == "UCB"){
+        double total_counts = iteration_stats.size() - 1;
+        vector<double> confidence_bound = compute_confidence_bound(nb_rewards, nb_counts, total_counts);
+        double sum = 0;
+        for (const auto& h : confidence_bound)
+            sum += h;
+        
+        cout << "confidence_bound = ";
+        for (const auto& h : confidence_bound)
+            cout << h << ",";
+        cout << endl;
+
+        double r = (double) rand() / RAND_MAX;
+        double threshold = confidence_bound[0];
+        selected_neighbor = 0;
+        while (threshold < r * sum)
+        {
+            selected_neighbor++;
+            threshold += confidence_bound[selected_neighbor];
+        }
+        switch (selected_neighbor)
+        {
+            case 0 : neighbor_size = 4; break;
+            case 1 : neighbor_size = 8; break;
+            case 2 : neighbor_size = 16; break;
+            case 3 : neighbor_size = 32; break;
+            default : cerr << "ERROR" << endl; exit(-1);
+        }
+    }
 }

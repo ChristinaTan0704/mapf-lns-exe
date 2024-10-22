@@ -32,6 +32,7 @@ int main(int argc, char** argv)
 		("solver", po::value<string>()->default_value("LNS"), "solver (LNS, A-BCBS, A-EECBS)")
 
         // params for LNS
+        ("effi_factor", po::value<double>()->default_value(0.1), "weight for nb efficiency")
         ("nbAlgo", po::value<string>()->default_value("Roulette"),
                 "nb selection algorithm (Roulette, UCB1, Thompson)")
         ("neighborSize", po::value<int>()->default_value(5), "Size of the neighborhood")
@@ -82,6 +83,7 @@ int main(int argc, char** argv)
         lns.state_json = vm["state"].as<string>();
         lns.log_step = vm["log_step"].as<int>();
         lns.replan_time_limit = vm["replanTime"].as<double>();
+        lns.effi_factor = vm["effi_factor"].as<double>();
         bool succ = lns.run();
         if (succ)
             lns.validateSolution();
