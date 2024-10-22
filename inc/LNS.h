@@ -114,6 +114,7 @@ private:
     vector<double> nb_weights;
     vector<double> nb_counts;
     vector<double> nb_rewards;
+    vector<double> nb_sumTimes;
     int selected_neighbor;
     int select_heuristic;
 

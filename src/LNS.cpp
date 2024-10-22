@@ -37,6 +37,7 @@ LNS::LNS(const Instance& instance, double time_limit, string init_algo_name, str
     nb_weights.assign(4 * num_neighbor_sizes, 1);
     nb_rewards.assign(4 * num_neighbor_sizes, 0);
     nb_counts.assign(4 * num_neighbor_sizes, 1);
+    nb_sumTimes.assign(4 * num_neighbor_sizes, 0);
     if (destory_name == "Adaptive")
     {
         ALNS = true;
@@ -147,6 +148,12 @@ bool LNS::run()
     auto removal_start = Time::now();
     double removal_time = 0;
     double one_round_time = 0;
+    int sum_of_delay = 0;
+
+    int init_sum_of_delay = 0;
+    for (int i = 0; i < agents.size(); i++){
+        init_sum_of_delay += agents[i].getNumOfDelays();
+    }
     while (lns_runtime < time_limit or iteration_stats.size() <= num_of_iterations)
     {
 
@@ -167,11 +174,7 @@ bool LNS::run()
             chooseNeighborSizebySimpleAdaptive();
         }
         else if (uniform_neighbor==4){ // bandit based algorithm
-            if (iteration_stats.size() != 1){
-                chooseNeighborSizebyBanditAdpative();
-            }else{
-                neighbor_size =getRandomFromSetExp();
-            }
+            chooseNeighborSizebyBanditAdpative();
         
         }
 
@@ -236,6 +239,13 @@ bool LNS::run()
         }
         if (succ) improved = true;
 
+
+        sum_of_costs += neighbor.sum_of_costs - neighbor.old_sum_of_costs;
+        sum_of_delay = 0;
+        for (int i = 0; i < agents.size(); i++){
+            sum_of_delay += agents[i].getNumOfDelays();
+        }
+
         auto replan_time = ((fsec)(Time::now() - replan_start_time)).count();
         one_round_time +=  ((fsec)(Time::now() - replan_start_time)).count();
         if (replan_time > replan_time_limit){
@@ -254,26 +264,35 @@ bool LNS::run()
                         (1 - decay_factor) * destroy_weights[select_heuristic];
             removal_time +=  ((fsec)(Time::now() - removal_start)).count() ;
         }
+        cout << "one_round_time " << one_round_time << endl;
         if (uniform_neighbor == 3){
             removal_start = Time::now();
+            nb_counts[selected_neighbor] = nb_counts[selected_neighbor] + 1;
+            nb_sumTimes[selected_neighbor] = nb_sumTimes[selected_neighbor] + one_round_time;
             if (neighbor.old_sum_of_costs > neighbor.sum_of_costs ){
-                double efficiency_weight = effi_factor / one_round_time;
+                double efficiency_weight = effi_factor / (nb_sumTimes[selected_neighbor]/nb_counts[selected_neighbor]);
+                double iteration_weight = (init_sum_of_delay - sum_of_delay + 1) / init_sum_of_delay;
                 nb_weights[selected_neighbor] =
-                        reaction_factor * (neighbor.old_sum_of_costs - neighbor.sum_of_costs) * efficiency_weight / (neighbor.agents.size())
+                        reaction_factor * (neighbor.old_sum_of_costs - neighbor.sum_of_costs) * efficiency_weight * iteration_weight / (neighbor.agents.size())
                         + (1 - reaction_factor) * nb_weights[selected_neighbor];
             }
             else{
                 nb_weights[selected_neighbor] = (1 - decay_factor*one_round_time) * nb_weights[selected_neighbor];
             }
-                
+            
             removal_time +=  ((fsec)(Time::now() - removal_start)).count() ;
         }
         if (uniform_neighbor == 4){
-            double efficiency_weight = effi_factor / one_round_time;
-            if (neighbor.old_sum_of_costs > neighbor.sum_of_costs ){
-                nb_rewards[selected_neighbor] = nb_rewards[selected_neighbor] + efficiency_weight * (neighbor.old_sum_of_costs - neighbor.sum_of_costs);
-            }
+            removal_start = Time::now();
             nb_counts[selected_neighbor] = nb_counts[selected_neighbor] + 1;
+            nb_sumTimes[selected_neighbor] = nb_sumTimes[selected_neighbor] + one_round_time;
+            double efficiency_weight = effi_factor / (nb_sumTimes[selected_neighbor]/nb_counts[selected_neighbor]);
+            double iteration_weight = (init_sum_of_delay - sum_of_delay + 1) / init_sum_of_delay;
+            if (neighbor.old_sum_of_costs > neighbor.sum_of_costs ){
+                nb_rewards[selected_neighbor] = nb_rewards[selected_neighbor] + iteration_weight * efficiency_weight * (neighbor.old_sum_of_costs - neighbor.sum_of_costs);
+            }
+            removal_time +=  ((fsec)(Time::now() - removal_start)).count() ;
+
         }
 
 
@@ -288,12 +307,7 @@ bool LNS::run()
         lns_runtime = lns_runtime + replan_time + removal_time;
         
         runtime = ((fsec)(Time::now() - start_time)).count();
-        sum_of_costs += neighbor.sum_of_costs - neighbor.old_sum_of_costs;
 
-        int sum_of_delay = 0;
-        for (int i = 0; i < agents.size(); i++){
-            sum_of_delay += agents[i].getNumOfDelays();
-        }
         if (iteration_stats.size() <= 2000 or  iteration_stats.size() % log_step == 0 or replan_time > replan_time_limit){
             cout << "Iteration " << iteration_stats.size() << ", "
                  << "group size = " << neighbor.agents.size() << ", "
@@ -309,7 +323,7 @@ bool LNS::run()
     if (average_group_size > 0)
         average_group_size /= (double)(iteration_stats.size() - 1);
 
-    int sum_of_delay = 0;
+    sum_of_delay = 0;
     int num_no_delay = 0;
     for (int i = 0; i < agents.size(); i++){
         sum_of_delay += agents[i].getNumOfDelays();
@@ -1158,6 +1172,30 @@ std::vector<double> compute_confidence_bound(const std::vector<double>& nb_rewar
 
 void LNS::chooseNeighborSizebyBanditAdpative()
 {
+    if (iteration_stats.size() == 1){
+        // random select for the first iteration
+        selected_neighbor = 0;
+        neighbor_size = 4;
+        return;
+    }
+    else if (iteration_stats.size() == 2){
+        // random select for the second iteration
+        selected_neighbor = 1;
+        neighbor_size = 8;
+        return;
+    }
+    else if (iteration_stats.size() == 3){
+        // random select for the third iteration
+        selected_neighbor = 2;
+        neighbor_size = 16;
+        return;
+    }
+    else if (iteration_stats.size() == 4){
+        // random select for the fourth iteration
+        selected_neighbor = 3;
+        neighbor_size = 32;
+        return;
+    }
 
     if (nb_algo_name == "UCB"){
         double total_counts = iteration_stats.size() - 1;
