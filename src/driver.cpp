@@ -4,8 +4,9 @@
 #include "AnytimeBCBS.h"
 #include "AnytimeEECBS.h"
 #include "PIBT/pibt.h"
-// --uniform_neighbor 4 --nbAlgo TS --neighborSize 4 --destroyStrategy RandomWalkProb --map /local-scratchb/jiaqit/exp/mapf-lns-benchmark/data/map/empty-32-32.map                 --state /local-scratchb/jiaqit/exp/mapf-lns-benchmark/data/lns2_init_states/map-empty-32-32-scene-24-agent-300.json                 --agentNum 300  --maxIterations 100  --cutoffTime 300
-// --uniform_neighbor 4 --nbAlgo TS --neighborSize 4 --destroyStrategy RandomWalkProb --map /local-scratchb/jiaqit/exp/mapf-lns-benchmark/data/map/den520d.map                 --state /local-scratchb/jiaqit/exp/mapf-lns-benchmark/data/lns2_init_states/map-den520d-scene-24-agent-900.json                 --agentNum 900  --maxIterations 100  --cutoffTime 300
+// --uniform_neighbor 3 --nbAlgo TS --nb_prob true --neighborSize 4 --destroyStrategy RandomWalkProb --map /local-scratchb/jiaqit/exp/mapf-lns-benchmark/data/map/empty-32-32.map                 --state /local-scratchb/jiaqit/exp/mapf-lns-benchmark/data/lns2_init_states/map-empty-32-32-scene-24-agent-500.json                 --agentNum 500  --maxIterations 100  --cutoffTime 300
+// --uniform_neighbor 4 --nbAlgo TS --nb_prob true --neighborSize 4 --destroyStrategy RandomWalkProb --map /local-scratchb/jiaqit/exp/mapf-lns-benchmark/data/map/empty-32-32.map                 --state /local-scratchb/jiaqit/exp/mapf-lns-benchmark/data/lns2_init_states/map-empty-32-32-scene-24-agent-300.json                 --agentNum 300  --maxIterations 100  --cutoffTime 300
+// --uniform_neighbor 3 --nbAlgo TS --nb_prob true --neighborSize 4 --destroyStrategy RandomWalkProb --map /local-scratchb/jiaqit/exp/mapf-lns-benchmark/data/map/den520d.map                 --state /local-scratchb/jiaqit/exp/mapf-lns-benchmark/data/lns2_init_states/map-den520d-scene-24-agent-900.json                 --agentNum 900  --maxIterations 100  --cutoffTime 300
 // --destroyStrategy RandomWalkProb --uniform_neighbor 3 --neighborSize 4                 --map /local-scratchb/jiaqit/exp/mapf-lns-benchmark/data/map/empty-32-32.map                 --state /local-scratchb/jiaqit/exp/mapf-lns-benchmark/data/lns2_init_states/map-empty-32-32-scene-24-agent-300.json                 --agentNum 300  --maxIterations 100  --cutoffTime 300
 /* Main function */
 int main(int argc, char** argv)

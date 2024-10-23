@@ -268,31 +268,64 @@ bool LNS::run()
             removal_time +=  ((fsec)(Time::now() - removal_start)).count() ;
         }
         cout << "one_round_time " << one_round_time << endl;
+
+        if (one_round_time > 0.6){
+            one_round_time = 0.1; // outlier
+        }
+
         if (uniform_neighbor == 3){
-            removal_start = Time::now();
             nb_counts[selected_neighbor] = nb_counts[selected_neighbor] + 1;
             nb_sumTimes[selected_neighbor] = nb_sumTimes[selected_neighbor] + one_round_time;
+            double efficiency_weight = sqrt(effi_factor / (nb_sumTimes[selected_neighbor]/nb_counts[selected_neighbor]));
+            double iteration_weight = static_cast<double>(init_sum_of_delay - sum_of_delay + 1) / static_cast<double>(init_sum_of_delay);
+            if (screen >= 0){ // TODO change to 2
+                cout << "### efficiency_weight " << efficiency_weight << " iteration_weight " << iteration_weight << " avg time " <<  (nb_sumTimes[selected_neighbor]/nb_counts[selected_neighbor]) << " imp " << neighbor.old_sum_of_costs - neighbor.sum_of_costs;
+                cout << " nb_size : " << neighbor_size;
+                cout << " nb_weights : ";
+                for (int i = 0; i < 4; i++){
+                    cout << " " << nb_weights[i];
+                }
+                cout << " nb_counts : ";
+                for (int i = 0; i < 4; i++){
+                    cout << " " << nb_counts[i];
+                }
+                cout << endl;
+            }
+
+            removal_start = Time::now();
             if (neighbor.old_sum_of_costs > neighbor.sum_of_costs ){
-                double efficiency_weight = sqrt(effi_factor / (nb_sumTimes[selected_neighbor]/nb_counts[selected_neighbor]));
-                double iteration_weight = static_cast<double>(init_sum_of_delay - sum_of_delay + 1) / static_cast<double>(init_sum_of_delay);
-                cout << "efficiency_weight " << efficiency_weight << " iteration_weight " << iteration_weight << endl;
                 nb_weights[selected_neighbor] =
                         reaction_factor * (neighbor.old_sum_of_costs - neighbor.sum_of_costs) * efficiency_weight * iteration_weight / (neighbor.agents.size())
                         + (1 - reaction_factor) * nb_weights[selected_neighbor];
             }
             else{
-                nb_weights[selected_neighbor] = (1 - decay_factor*one_round_time) * nb_weights[selected_neighbor];
+                nb_weights[selected_neighbor] = (1 - decay_factor*(1/effi_factor)*(nb_sumTimes[selected_neighbor]/nb_counts[selected_neighbor])) * nb_weights[selected_neighbor];
             }
             
             removal_time +=  ((fsec)(Time::now() - removal_start)).count() ;
         }
         if (uniform_neighbor == 4){
-            removal_start = Time::now();
             nb_counts[selected_neighbor] = nb_counts[selected_neighbor] + 1;
             nb_sumTimes[selected_neighbor] = nb_sumTimes[selected_neighbor] + one_round_time;
+
             double efficiency_weight = sqrt(effi_factor / (nb_sumTimes[selected_neighbor]/nb_counts[selected_neighbor]));
             double iteration_weight = static_cast<double>(init_sum_of_delay - sum_of_delay + 1) / static_cast<double>(init_sum_of_delay);
-                cout << "efficiency_weight " << efficiency_weight << " iteration_weight " << iteration_weight << endl;
+            if (screen >= 0){ // TODO change to 2
+                cout << "### efficiency_weight " << efficiency_weight << " iteration_weight " << iteration_weight << " avg time " <<  (nb_sumTimes[selected_neighbor]/nb_counts[selected_neighbor]) << " imp " << neighbor.old_sum_of_costs - neighbor.sum_of_costs;
+                cout << " nb_size : " << neighbor_size;
+                cout << " nb_weights : ";
+                for (int i = 0; i < 4; i++){
+                    cout << " " << nb_weights[i];
+                }
+                cout << " nb_counts : ";
+                for (int i = 0; i < 4; i++){
+                    cout << " " << nb_counts[i];
+                }
+                cout << endl;
+            }
+
+
+            removal_start = Time::now();
             if (neighbor.old_sum_of_costs > neighbor.sum_of_costs ){
                 auto one_reward = nb_rewards[selected_neighbor] + iteration_weight * efficiency_weight * (neighbor.old_sum_of_costs - neighbor.sum_of_costs);
                 nb_rewards[selected_neighbor] = one_reward;
