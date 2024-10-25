@@ -4,6 +4,7 @@
 #include "AnytimeBCBS.h"
 #include "AnytimeEECBS.h"
 #include "PIBT/pibt.h"
+//  --uniform_neighbor 3 --nbAlgo TS --nb_prob false --neighborSize 4 --destroyStrategy RandomWalkProb --map /local-scratchb/jiaqit/exp/mapf-lns-benchmark/data/map/den520d.map                 --state /local-scratchb/jiaqit/exp/mapf-lns-benchmark/data/lns2_init_states/map-den520d-scene-24-agent-900.json                 --agentNum 900  --maxIterations 100  --cutoffTime 300
 // --uniform_neighbor 3 --nbAlgo TS --nb_prob true --neighborSize 4 --destroyStrategy RandomWalkProb --map /local-scratchb/jiaqit/exp/mapf-lns-benchmark/data/map/empty-32-32.map                 --state /local-scratchb/jiaqit/exp/mapf-lns-benchmark/data/lns2_init_states/map-empty-32-32-scene-24-agent-500.json                 --agentNum 500  --maxIterations 100  --cutoffTime 300
 // --uniform_neighbor 4 --nbAlgo TS --nb_prob true --neighborSize 4 --destroyStrategy RandomWalkProb --map /local-scratchb/jiaqit/exp/mapf-lns-benchmark/data/map/empty-32-32.map                 --state /local-scratchb/jiaqit/exp/mapf-lns-benchmark/data/lns2_init_states/map-empty-32-32-scene-24-agent-300.json                 --agentNum 300  --maxIterations 100  --cutoffTime 300
 // --uniform_neighbor 3 --nbAlgo TS --nb_prob true --neighborSize 4 --destroyStrategy RandomWalkProb --map /local-scratchb/jiaqit/exp/mapf-lns-benchmark/data/map/den520d.map                 --state /local-scratchb/jiaqit/exp/mapf-lns-benchmark/data/lns2_init_states/map-den520d-scene-24-agent-900.json                 --agentNum 900  --maxIterations 100  --cutoffTime 300
@@ -34,8 +35,9 @@ int main(int argc, char** argv)
 		("solver", po::value<string>()->default_value("LNS"), "solver (LNS, A-BCBS, A-EECBS)")
 
         // params for LNS
+        ("nb_start_iter", po::value<int>()->default_value(100), "start iteration for nb selection")
 		("nb_prob", po::value<bool>()->default_value(true), "use nb probability other wise use max reward")
-        ("effi_factor", po::value<double>()->default_value(0.01), "weight for nb efficiency")
+        ("effi_factor", po::value<double>()->default_value(1000), "weight for nb efficiency")
         ("nbAlgo", po::value<string>()->default_value("RLE"),
                 "nb selection algorithm (RLE, UCB, TS)")
         ("neighborSize", po::value<int>()->default_value(5), "Size of the neighborhood")
@@ -88,6 +90,7 @@ int main(int argc, char** argv)
         lns.log_step = vm["log_step"].as<int>();
         lns.replan_time_limit = vm["replanTime"].as<double>();
         lns.effi_factor = vm["effi_factor"].as<double>();
+        lns.nb_start_iter = vm["nb_start_iter"].as<int>();
         bool succ = lns.run();
         if (succ)
             lns.validateSolution();

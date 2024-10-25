@@ -6,7 +6,7 @@
 #include <algorithm> // for std::max_element
 #include <cmath>
 
-int getRandomFromSetExp() {
+void LNS::getRandomFromSetExp() {
     std::array<int, 4> values = {4, 8, 16, 32};
     // Random number generator
     std::random_device rd;
@@ -15,7 +15,8 @@ int getRandomFromSetExp() {
 
     // Generate random index and return the value at that index
     int randomIndex = distrib(gen);
-    return values[randomIndex];
+    neighbor_size = values[randomIndex];
+    selected_neighbor = randomIndex;
 }
 
 int getRandomFromRange() {
@@ -41,6 +42,8 @@ LNS::LNS(const Instance& instance, double time_limit, string init_algo_name, str
     nb_counts.assign(4 * num_neighbor_sizes, 1);
     nb_sumTimes.assign(4 * num_neighbor_sizes, 0);
     nb_rewards_square.assign(4 * num_neighbor_sizes, 0);
+    nb_sumImp.assign(4 * num_neighbor_sizes, 0);
+    nb_sumSuccCounts.assign(4 * num_neighbor_sizes, 0);
     if (destory_name == "Adaptive")
     {
         ALNS = true;
@@ -150,7 +153,7 @@ bool LNS::run()
     double clipped_time = 0;
     auto removal_start = Time::now();
     double removal_time = 0;
-    double one_round_time = 0;
+    // double one_round_time = 0;
     int sum_of_delay = 0;
 
     int init_sum_of_delay = 0;
@@ -160,7 +163,7 @@ bool LNS::run()
     while (lns_runtime < time_limit or iteration_stats.size() <= num_of_iterations)
     {
 
-        one_round_time = 0;
+        // one_round_time = 0;
         runtime =((fsec)(Time::now() - start_time)).count();
         if(screen >= 1)
             validateSolution();
@@ -168,13 +171,17 @@ bool LNS::run()
 
         removal_time = 0;
         if (uniform_neighbor==1){ // sample from {4,8,16,32}
-            neighbor_size =getRandomFromSetExp();
+            getRandomFromSetExp();
         }
         else if (uniform_neighbor==2){ // sample a random int from range 5 ~ 16
-            neighbor_size =getRandomFromRange();
+            neighbor_size = getRandomFromRange();
         }
         else if (uniform_neighbor==3){ // simple adaptive
-            chooseNeighborSizebySimpleAdaptive();
+            if (iteration_stats.size() < nb_start_iter){
+                getRandomFromSetExp();
+            }else{
+                chooseNeighborSizebySimpleAdaptive();
+            }
         }
         else if (uniform_neighbor==4){ // bandit based algorithm
             chooseNeighborSizebyBanditAdpative();
@@ -213,7 +220,7 @@ bool LNS::run()
                 exit(-1);
         }
         removal_time +=  ((fsec)(Time::now() - removal_start)).count() ;
-        one_round_time +=  ((fsec)(Time::now() - removal_start)).count() ;
+        // one_round_time +=  ((fsec)(Time::now() - removal_start)).count() ;
         if(!succ)
             continue;
 
@@ -250,7 +257,7 @@ bool LNS::run()
         }
 
         auto replan_time = ((fsec)(Time::now() - replan_start_time)).count();
-        one_round_time +=  ((fsec)(Time::now() - replan_start_time)).count();
+        // one_round_time +=  ((fsec)(Time::now() - replan_start_time)).count();
         if (replan_time > replan_time_limit){
             replan_time = replan_time_limit;
         }
@@ -267,71 +274,101 @@ bool LNS::run()
                         (1 - decay_factor) * destroy_weights[select_heuristic];
             removal_time +=  ((fsec)(Time::now() - removal_start)).count() ;
         }
-        cout << "one_round_time " << one_round_time << endl;
+        // cout << "one_round_time " << one_round_time << endl;
 
-        if (one_round_time > 0.6){
-            one_round_time = 0.1; // outlier
-        }
+        // if (one_round_time > 0.6){
+        //     one_round_time = 0.1; // outlier
+        // }
 
         if (uniform_neighbor == 3){
+
+            
+            // double efficiency_weight = sqrt(effi_factor / (nb_sumTimes[selected_neighbor]/nb_counts[selected_neighbor]));
+            // double iteration_weight = static_cast<double>(init_sum_of_delay - sum_of_delay + 1) / static_cast<double>(init_sum_of_delay);
+            // if (screen >= 0){ // TODO change to 2
+            //     cout << "### efficiency_weight " << efficiency_weight << " iteration_weight " << iteration_weight << " avg time " <<  (nb_sumTimes[selected_neighbor]/nb_counts[selected_neighbor]) << " imp " << neighbor.old_sum_of_costs - neighbor.sum_of_costs;
+            //     cout << " nb_size : " << neighbor_size;
+            //     cout << " nb_weights : ";
+            //     for (int i = 0; i < 4; i++){
+            //         cout << " " << nb_weights[i];
+            //     }
+            //     cout << " nb_counts : ";
+            //     for (int i = 0; i < 4; i++){
+            //         cout << " " << nb_counts[i];
+            //     }
+            //     cout << endl;
+            // }
             nb_counts[selected_neighbor] = nb_counts[selected_neighbor] + 1;
-            nb_sumTimes[selected_neighbor] = nb_sumTimes[selected_neighbor] + one_round_time;
-            double efficiency_weight = sqrt(effi_factor / (nb_sumTimes[selected_neighbor]/nb_counts[selected_neighbor]));
-            double iteration_weight = static_cast<double>(init_sum_of_delay - sum_of_delay + 1) / static_cast<double>(init_sum_of_delay);
-            if (screen >= 0){ // TODO change to 2
-                cout << "### efficiency_weight " << efficiency_weight << " iteration_weight " << iteration_weight << " avg time " <<  (nb_sumTimes[selected_neighbor]/nb_counts[selected_neighbor]) << " imp " << neighbor.old_sum_of_costs - neighbor.sum_of_costs;
-                cout << " nb_size : " << neighbor_size;
-                cout << " nb_weights : ";
-                for (int i = 0; i < 4; i++){
-                    cout << " " << nb_weights[i];
-                }
-                cout << " nb_counts : ";
-                for (int i = 0; i < 4; i++){
-                    cout << " " << nb_counts[i];
-                }
-                cout << endl;
+            nb_sumTimes[selected_neighbor] = nb_sumTimes[selected_neighbor] + num_of_low_level;
+            if (neighbor.old_sum_of_costs > neighbor.sum_of_costs ){
+                nb_sumSuccCounts[selected_neighbor] = nb_sumSuccCounts[selected_neighbor] + 1;
             }
 
             removal_start = Time::now();
-            if (neighbor.old_sum_of_costs > neighbor.sum_of_costs ){
-                nb_weights[selected_neighbor] =
-                        reaction_factor * (neighbor.old_sum_of_costs - neighbor.sum_of_costs) * efficiency_weight * iteration_weight / (neighbor.agents.size())
-                        + (1 - reaction_factor) * nb_weights[selected_neighbor];
+            if (iteration_stats.size() == nb_start_iter){
+                for (int idx = 0; idx < 4; idx++){
+                    nb_weights[idx] = std::max(nb_sumSuccCounts[idx]/ nb_counts[idx], 0.01);
+                }
             }
-            else{
-                nb_weights[selected_neighbor] = (1 - decay_factor*(1/effi_factor)*(nb_sumTimes[selected_neighbor]/nb_counts[selected_neighbor])) * nb_weights[selected_neighbor];
+            // started to update the weights from 100th iteration
+            if (iteration_stats.size() > nb_start_iter){
+                nb_weights[selected_neighbor] = nb_sumSuccCounts[selected_neighbor]/ nb_counts[selected_neighbor];
             }
+
+            // iteration_stats.size() > 300
+
+            // removal_start = Time::now();
+            // if (neighbor.old_sum_of_costs > neighbor.sum_of_costs ){
+            //     nb_sumImp[selected_neighbor] = nb_sumImp[selected_neighbor] + (neighbor.old_sum_of_costs - neighbor.sum_of_costs);
+            //     nb_weights[selected_neighbor] =
+            //             reaction_factor * (neighbor.old_sum_of_costs - neighbor.sum_of_costs) * efficiency_weight * iteration_weight / (neighbor.agents.size())
+            //             + (1 - reaction_factor) * nb_weights[selected_neighbor];
+            // }
+            // else{
+            //     nb_weights[selected_neighbor] = (1 - decay_factor*(1/effi_factor)*(nb_sumTimes[selected_neighbor]/nb_counts[selected_neighbor])) * nb_weights[selected_neighbor];
+            // }
             
             removal_time +=  ((fsec)(Time::now() - removal_start)).count() ;
         }
-        if (uniform_neighbor == 4){
+        if (uniform_neighbor == 4 && iteration_stats.size() > 30){
+            // if (iteration_stats.size() % 500 == 0){
+            //     nb_counts = vector<double>(4 * num_neighbor_sizes, 1);
+            //     nb_sumTimes = vector<double>(4 * num_neighbor_sizes, 0);
+            //     nb_rewards = vector<double>(4 * num_neighbor_sizes, 0);
+            //     nb_rewards_square = vector<double>(4 * num_neighbor_sizes, 0);
+            //     nb_weights = vector<double>(4 * num_neighbor_sizes, 1);
+            // }
+
             nb_counts[selected_neighbor] = nb_counts[selected_neighbor] + 1;
-            nb_sumTimes[selected_neighbor] = nb_sumTimes[selected_neighbor] + one_round_time;
+            nb_sumTimes[selected_neighbor] = nb_sumTimes[selected_neighbor] + num_of_low_level;
 
-            double efficiency_weight = sqrt(effi_factor / (nb_sumTimes[selected_neighbor]/nb_counts[selected_neighbor]));
-            double iteration_weight = static_cast<double>(init_sum_of_delay - sum_of_delay + 1) / static_cast<double>(init_sum_of_delay);
-            if (screen >= 0){ // TODO change to 2
-                cout << "### efficiency_weight " << efficiency_weight << " iteration_weight " << iteration_weight << " avg time " <<  (nb_sumTimes[selected_neighbor]/nb_counts[selected_neighbor]) << " imp " << neighbor.old_sum_of_costs - neighbor.sum_of_costs;
-                cout << " nb_size : " << neighbor_size;
-                cout << " nb_weights : ";
-                for (int i = 0; i < 4; i++){
-                    cout << " " << nb_weights[i];
-                }
-                cout << " nb_counts : ";
-                for (int i = 0; i < 4; i++){
-                    cout << " " << nb_counts[i];
-                }
-                cout << endl;
-            }
+            
+
+            // double efficiency_weight = sqrt(effi_factor / (nb_sumTimes[selected_neighbor]/nb_counts[selected_neighbor]));
+            // double iteration_weight = static_cast<double>(init_sum_of_delay - sum_of_delay + 1) / static_cast<double>(init_sum_of_delay);
+            // if (screen >= 0){ // TODO change to 2
+            //     cout << "### efficiency_weight " << efficiency_weight << " iteration_weight " << iteration_weight << " avg time " <<  (nb_sumTimes[selected_neighbor]/nb_counts[selected_neighbor]) << " imp " << neighbor.old_sum_of_costs - neighbor.sum_of_costs;
+            //     cout << " nb_size : " << neighbor_size;
+            //     cout << " nb_weights : ";
+            //     for (int i = 0; i < 4; i++){
+            //         cout << " " << nb_weights[i];
+            //     }
+            //     cout << " nb_counts : ";
+            //     for (int i = 0; i < 4; i++){
+            //         cout << " " << nb_counts[i];
+            //     }
+            //     cout << endl;
+            // }
 
 
-            removal_start = Time::now();
-            if (neighbor.old_sum_of_costs > neighbor.sum_of_costs ){
-                auto one_reward = nb_rewards[selected_neighbor] + iteration_weight * efficiency_weight * (neighbor.old_sum_of_costs - neighbor.sum_of_costs);
-                nb_rewards[selected_neighbor] = one_reward;
-                nb_rewards_square[selected_neighbor] = one_reward * one_reward;
-            }
-            removal_time +=  ((fsec)(Time::now() - removal_start)).count() ;
+            // removal_start = Time::now();
+            // if (neighbor.old_sum_of_costs > neighbor.sum_of_costs ){
+            //     nb_sumImp[selected_neighbor] = nb_sumImp[selected_neighbor] + (neighbor.old_sum_of_costs - neighbor.sum_of_costs);
+            //     one_reward = nb_sumImp[selected_neighbor] / nb_sumTimes[selected_neighbor];
+            //     nb_rewards[selected_neighbor] = one_reward;
+            //     nb_rewards_square[selected_neighbor] = one_reward * one_reward;
+            // }
+            // removal_time +=  ((fsec)(Time::now() - removal_start)).count() ;
 
         }
 
@@ -727,22 +764,28 @@ void LNS::updatePIBTResult(const PIBT_Agents& A,vector<int> shuffled_agents){
 
 void LNS::chooseNeighborSizebySimpleAdaptive()
 {
-    double sum = 0;
-    for (const auto& h : nb_weights)
-        sum += h;
     cout << "nb_weights = ";
     for (const auto& h : nb_weights)
         cout << h << ",";
     cout << endl;
-    // }
-    double r = (double) rand() / RAND_MAX;
-    double threshold = nb_weights[0];
-    selected_neighbor = 0;
-    while (threshold < r * sum)
-    {
-        selected_neighbor++;
-        threshold += nb_weights[selected_neighbor];
+
+    if (nb_prob){
+        double sum = 0;
+        for (const auto& h : nb_weights)
+            sum += h;
+        double r = (double) rand() / RAND_MAX;
+        double threshold = nb_weights[0];
+        selected_neighbor = 0;
+        while (threshold < r * sum)
+        {
+            selected_neighbor++;
+            threshold += nb_weights[selected_neighbor];
+        }
+    }else{
+        selected_neighbor = std::distance(nb_weights.begin(), std::max_element(nb_weights.begin(), nb_weights.end()));
     }
+
+
     switch (selected_neighbor)
     {
         case 0 : neighbor_size = 4; break;
@@ -1294,7 +1337,9 @@ void LNS::chooseNeighborSizebyBanditAdpative()
     }
 
     if (nb_algo_name == "UCB"){
-        double total_counts = iteration_stats.size() - 1;
+        double total_counts = 0;
+        for (const auto& c : nb_counts)
+            total_counts += c;
         nb_weights = compute_confidence_bound(nb_rewards, nb_counts, total_counts);
 
     }

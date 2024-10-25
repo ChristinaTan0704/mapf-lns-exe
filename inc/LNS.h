@@ -78,11 +78,13 @@ public:
     string getSolverName() const { return "LNS(" + init_algo_name + ";" + replan_algo_name + ")"; }
     double effi_factor = 0.1;
     string nb_algo_name;
+    int nb_start_iter = 100;
+
 
 private:
 
 
-
+    void getRandomFromSetExp();
     int num_neighbor_sizes = 1; //4; // so the neighbor size could be 2, 4, 8, 16
 
     // input params
@@ -114,9 +116,11 @@ private:
     vector<double> destroy_weights;
     vector<double> nb_weights;
     vector<double> nb_counts;
+    vector<double> nb_sumSuccCounts;
     vector<double> nb_rewards;
     vector<double> nb_rewards_square;
     vector<double> nb_sumTimes;
+    vector<double> nb_sumImp;
     int selected_neighbor;
     int select_heuristic;
 
