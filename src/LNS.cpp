@@ -283,51 +283,40 @@ bool LNS::run()
         if (uniform_neighbor == 3){
 
             
-            // double efficiency_weight = sqrt(effi_factor / (nb_sumTimes[selected_neighbor]/nb_counts[selected_neighbor]));
-            // double iteration_weight = static_cast<double>(init_sum_of_delay - sum_of_delay + 1) / static_cast<double>(init_sum_of_delay);
-            // if (screen >= 0){ // TODO change to 2
-            //     cout << "### efficiency_weight " << efficiency_weight << " iteration_weight " << iteration_weight << " avg time " <<  (nb_sumTimes[selected_neighbor]/nb_counts[selected_neighbor]) << " imp " << neighbor.old_sum_of_costs - neighbor.sum_of_costs;
-            //     cout << " nb_size : " << neighbor_size;
-            //     cout << " nb_weights : ";
-            //     for (int i = 0; i < 4; i++){
-            //         cout << " " << nb_weights[i];
-            //     }
-            //     cout << " nb_counts : ";
-            //     for (int i = 0; i < 4; i++){
-            //         cout << " " << nb_counts[i];
-            //     }
-            //     cout << endl;
-            // }
+
             nb_counts[selected_neighbor] = nb_counts[selected_neighbor] + 1;
             nb_sumTimes[selected_neighbor] = nb_sumTimes[selected_neighbor] + num_of_low_level;
             if (neighbor.old_sum_of_costs > neighbor.sum_of_costs ){
-                nb_sumSuccCounts[selected_neighbor] = nb_sumSuccCounts[selected_neighbor] + 1;
+                if (nb_algo_name == "SR"){
+                    nb_sumSuccCounts[selected_neighbor] = nb_sumSuccCounts[selected_neighbor] + 1;
+                }
+                else if (nb_algo_name == "NSR"){
+                    nb_sumSuccCounts[selected_neighbor] = nb_sumSuccCounts[selected_neighbor] + num_of_low_level;
+                }
+                
             }
 
             removal_start = Time::now();
             if (iteration_stats.size() == nb_start_iter){
                 for (int idx = 0; idx < 4; idx++){
-                    nb_weights[idx] = std::max(nb_sumSuccCounts[idx]/ nb_counts[idx], 0.01);
+                    if (nb_algo_name == "SR"){
+                        nb_weights[idx] = std::max(nb_sumSuccCounts[idx]/ nb_counts[idx], 0.01);
+                    }
+                    else if (nb_algo_name == "NSR"){
+                        nb_weights[idx] = std::max(nb_sumSuccCounts[idx]/ nb_sumTimes[idx], 0.01);
+                    }
                 }
             }
             // started to update the weights from 100th iteration
             if (iteration_stats.size() > nb_start_iter){
-                nb_weights[selected_neighbor] = nb_sumSuccCounts[selected_neighbor]/ nb_counts[selected_neighbor];
+                if (nb_algo_name == "SR"){
+                    nb_weights[selected_neighbor] = nb_sumSuccCounts[selected_neighbor]/ nb_counts[selected_neighbor];
+                }
+                else if (nb_algo_name == "NSR"){
+                    nb_weights[selected_neighbor] = nb_sumSuccCounts[selected_neighbor]/ nb_sumTimes[selected_neighbor];
+                }
             }
 
-            // iteration_stats.size() > 300
-
-            // removal_start = Time::now();
-            // if (neighbor.old_sum_of_costs > neighbor.sum_of_costs ){
-            //     nb_sumImp[selected_neighbor] = nb_sumImp[selected_neighbor] + (neighbor.old_sum_of_costs - neighbor.sum_of_costs);
-            //     nb_weights[selected_neighbor] =
-            //             reaction_factor * (neighbor.old_sum_of_costs - neighbor.sum_of_costs) * efficiency_weight * iteration_weight / (neighbor.agents.size())
-            //             + (1 - reaction_factor) * nb_weights[selected_neighbor];
-            // }
-            // else{
-            //     nb_weights[selected_neighbor] = (1 - decay_factor*(1/effi_factor)*(nb_sumTimes[selected_neighbor]/nb_counts[selected_neighbor])) * nb_weights[selected_neighbor];
-            // }
-            
             removal_time +=  ((fsec)(Time::now() - removal_start)).count() ;
         }
         if (uniform_neighbor == 4 && iteration_stats.size() > 30){

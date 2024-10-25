@@ -4,6 +4,7 @@
 #include "AnytimeBCBS.h"
 #include "AnytimeEECBS.h"
 #include "PIBT/pibt.h"
+//  --uniform_neighbor 3 --nbAlgo TS --nb_prob false --neighborSize 4 --destroyStrategy RandomWalkProb --map /local-scratchb/jiaqit/exp/mapf-lns-benchmark/data/map/den520d.map                 --state /local-scratchb/jiaqit/exp/mapf-lns-benchmark/data/lns2_init_states/map-den520d-scene-7-agent-900.json                 --agentNum 900  --maxIterations 100  --cutoffTime 300
 //  --uniform_neighbor 3 --nbAlgo TS --nb_prob false --neighborSize 4 --destroyStrategy RandomWalkProb --map /local-scratchb/jiaqit/exp/mapf-lns-benchmark/data/map/den520d.map                 --state /local-scratchb/jiaqit/exp/mapf-lns-benchmark/data/lns2_init_states/map-den520d-scene-24-agent-900.json                 --agentNum 900  --maxIterations 100  --cutoffTime 300
 // --uniform_neighbor 3 --nbAlgo TS --nb_prob true --neighborSize 4 --destroyStrategy RandomWalkProb --map /local-scratchb/jiaqit/exp/mapf-lns-benchmark/data/map/empty-32-32.map                 --state /local-scratchb/jiaqit/exp/mapf-lns-benchmark/data/lns2_init_states/map-empty-32-32-scene-24-agent-500.json                 --agentNum 500  --maxIterations 100  --cutoffTime 300
 // --uniform_neighbor 4 --nbAlgo TS --nb_prob true --neighborSize 4 --destroyStrategy RandomWalkProb --map /local-scratchb/jiaqit/exp/mapf-lns-benchmark/data/map/empty-32-32.map                 --state /local-scratchb/jiaqit/exp/mapf-lns-benchmark/data/lns2_init_states/map-empty-32-32-scene-24-agent-300.json                 --agentNum 300  --maxIterations 100  --cutoffTime 300
@@ -39,7 +40,7 @@ int main(int argc, char** argv)
 		("nb_prob", po::value<bool>()->default_value(true), "use nb probability other wise use max reward")
         ("effi_factor", po::value<double>()->default_value(1000), "weight for nb efficiency")
         ("nbAlgo", po::value<string>()->default_value("RLE"),
-                "nb selection algorithm (RLE, UCB, TS)")
+                "bandit nb selection algorithm (RLE, UCB, TS); simple adaptive nb selection algorithm (SR, NSR)")
         ("neighborSize", po::value<int>()->default_value(5), "Size of the neighborhood")
         ("seed", po::value<int>()->default_value(0), "Size of the neighborhood")
         ("maxIterations", po::value<int>()->default_value(1000000), "maximum number of iterations")
