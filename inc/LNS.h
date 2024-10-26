@@ -15,7 +15,7 @@
 using namespace std::chrono;
 typedef std::chrono::high_resolution_clock Time;
 typedef std::chrono::duration<float> fsec;
-enum destroy_heuristic { RANDOMAGENTS, RANDOMWALK, INTERSECTION, RANDOMWALKPROB, DESTORY_COUNT }; //
+enum destroy_heuristic { RANDOMAGENTS, RANDOMWALK, INTERSECTION, RANDOMWALKPROB, RANDOMWALKPROBNSR, DESTORY_COUNT }; //
 
 struct Agent
 {
@@ -48,7 +48,7 @@ public:
     bool nb_prob;
     vector<Agent> agents;
     vector<int> delayed_agents;
-    vector<int> delay_list;
+    vector<double> delay_list;
     list<IterationStats> iteration_stats; //stats about each iteration
     double tabu_discount = 0.5; // delayed agent selected probability discount if it's in the tabu_list
     int uniform_neighbor;
@@ -121,6 +121,9 @@ private:
     vector<double> nb_rewards_square;
     vector<double> nb_sumTimes;
     vector<double> nb_sumImp;
+    vector<double> agent_SuccNode;
+    vector<double> agent_SumNode;
+    vector<int> RW_start_agents;
     int selected_neighbor;
     int select_heuristic;
 

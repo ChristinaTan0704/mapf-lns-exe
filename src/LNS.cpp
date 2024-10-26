@@ -44,6 +44,7 @@ LNS::LNS(const Instance& instance, double time_limit, string init_algo_name, str
     nb_rewards_square.assign(4 * num_neighbor_sizes, 0);
     nb_sumImp.assign(4 * num_neighbor_sizes, 0);
     nb_sumSuccCounts.assign(4 * num_neighbor_sizes, 0);
+
     if (destory_name == "Adaptive")
     {
         ALNS = true;
@@ -57,6 +58,8 @@ LNS::LNS(const Instance& instance, double time_limit, string init_algo_name, str
         destroy_strategy = RANDOMAGENTS;
     else if (destory_name == "RandomWalkProb")
         destroy_strategy = RANDOMWALKPROB;
+    else if (destory_name == "RandomWalkProbNSR")
+        destroy_strategy = RANDOMWALKPROBNSR;
     else
     {
         cerr << "Destroy heuristic " << destory_name << " does not exists. " << endl;
@@ -74,6 +77,9 @@ LNS::LNS(const Instance& instance, double time_limit, string init_algo_name, str
 
 bool LNS::run()
 {
+
+    agent_SuccNode.assign(agents.size(), 1);
+    agent_SumNode.assign(agents.size(), 1);
     // only for statistic analysis, and thus is not included in runtime
     sum_of_distances = 0;
     for (const auto & agent : agents)
@@ -204,6 +210,9 @@ bool LNS::run()
             case RANDOMWALKPROB:
                 succ = generateNeighborByRandomWalkProbSelect();
                 break;
+            case RANDOMWALKPROBNSR:
+                succ = generateNeighborByRandomWalkProbSelect();
+                break;
             case RANDOMAGENTS:
                 neighbor.agents.resize(agents.size());
                 for (int i = 0; i < (int)agents.size(); i++)
@@ -280,10 +289,20 @@ bool LNS::run()
         //     one_round_time = 0.1; // outlier
         // }
 
+        if (destroy_strategy == RANDOMWALKPROBNSR){
+            // RW_start_agents
+            for (auto a : RW_start_agents){
+                if (neighbor.old_sum_of_costs > neighbor.sum_of_costs){
+                    agent_SuccNode[a] = agent_SuccNode[a] + num_of_low_level;
+                }
+                else{
+                    agent_SuccNode[a] = agent_SuccNode[a] + num_of_low_level/2; // not too critical to the failure ones
+                }
+                agent_SumNode[a] = agent_SumNode[a] + num_of_low_level;
+            }
+        }
+
         if (uniform_neighbor == 3){
-
-            
-
             nb_counts[selected_neighbor] = nb_counts[selected_neighbor] + 1;
             nb_sumTimes[selected_neighbor] = nb_sumTimes[selected_neighbor] + num_of_low_level;
             if (neighbor.old_sum_of_costs > neighbor.sum_of_costs ){
@@ -584,7 +603,6 @@ bool LNS::runPP()
     {
         int id = *p;
         if (screen >= 3)
-
             cout << "Remaining agents = " << remaining_agents <<
                  ", remaining time = " << time_limit - runtime << " seconds. " << endl
                  << "Agent " << agents[id].id << endl;
@@ -934,24 +952,22 @@ bool LNS::generateNeighborByRandomWalkProbSelect()
         if (agent_delay > max_delay) max_delay = agent_delay;
         if (agent_delay > 0){
             delayed_agents.push_back(i);
-            // if the agent is selected in previous rounds, discount it by tabu_discount
-            if (tabu_list.find(i) != tabu_list.end()){
-                delay_list.push_back(agent_delay*tabu_discount);
-            }else{
-                delay_list.push_back(agent_delay);
-            }
+            // Calculate the delay score considering both agent delay and success rate
+            double delay_score = agent_delay * agent_SuccNode[i] / agent_SumNode[i];
+            delay_list.push_back(delay_score);
         }
     }
 
 
     set<int> neighbors_set;
     int count = 0;
+    RW_start_agents.clear();
     while (neighbors_set.size() < neighbor_size && count < 10)
     {
         int a = findAgentBasedOnDelay();
         if (a < 0)
             return false;
-
+        RW_start_agents.push_back(a);
         int t = rand() % agents[a].path.size();
         randomWalk(a, agents[a].path[t].location, t, neighbors_set, neighbor_size, (int) agents[a].path.size() - 1);
         count++;
@@ -1016,8 +1032,8 @@ int LNS::findAgentBasedOnDelay() {
     int index = std::distance(cumulative_weights.begin(), it);
 
     // Return the corresponding element from delayed_agents
-    tabu_list.insert(delayed_agents[index]);
-    delay_list[index] *= tabu_discount; // if selected in the current LNS round, discount it again
+    // tabu_list.insert(delayed_agents[index]);
+    // delay_list[index] *= tabu_discount; // if selected in the current LNS round, discount it again
     return delayed_agents[index];
 }
 
