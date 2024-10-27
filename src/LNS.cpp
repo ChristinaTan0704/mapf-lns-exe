@@ -574,6 +574,8 @@ bool LNS::runPP()
     auto pp_start_time = Time::now();
 
 
+
+
     if (destroy_strategy == RANDOMWALK or destroy_strategy == RANDOMWALKPROB){
         // print random_walk_init_agent and random_walk_start_timestep
         for (int i = 0; i < random_walk_init_agent.size(); i++){
@@ -628,13 +630,12 @@ bool LNS::runPP()
 
 
         // print removal agent information 
-        cout << "pp_round_idx: " << pp_round_idx;
+
         for (int id : shuffled_agents){
             cout << " removal_agent: " << id << " delay: " << agents[id].getNumOfDelays();
         }
         cout << endl;
-
-        cout << "num_of_low_level: " << num_of_low_level << endl;
+        cout << "pp_round_idx: " << pp_round_idx << " old_sum_of_costs: " << neighbor.old_sum_of_costs << " sum_of_costs: " << neighbor.sum_of_costs << " num_of_low_level: " << num_of_low_level << endl;
 
         // delete the agent paths from path_table if not the last iteration 
         if (pp_round_idx != pp_round - 1){
