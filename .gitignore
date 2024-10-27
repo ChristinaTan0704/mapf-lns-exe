@@ -8,3 +8,9 @@ output/*
 data
 script/*
 data/*
+CMakeCache.txt
+CMakeFiles/*
+Makefile
+build.ninja
+rule-based-lns
+Testing/*
