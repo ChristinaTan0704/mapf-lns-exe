@@ -159,6 +159,7 @@ bool LNS::run()
     double clipped_time = 0;
     auto removal_start = Time::now();
     double removal_time = 0;
+    double replan_time = 0;
     // double one_round_time = 0;
     int sum_of_delay = 0;
 
@@ -168,127 +169,127 @@ bool LNS::run()
     }
     while (lns_runtime < time_limit or iteration_stats.size() <= num_of_iterations)
     {
+        for (int strategy_round_idx = 0; strategy_round_idx < strategy_round; strategy_round_idx++){
+            random_walk_reset = true;
+            random_walk_init_agent.clear();
+            for (int rw_inner_round_idx = 0; rw_inner_round_idx < random_walk_timestep_round; rw_inner_round_idx++){
+                cout << "strategy_round_idx : " << strategy_round_idx << " rw_inner_round_idx : " << rw_inner_round_idx << endl;
+                // one_round_time = 0;
+                runtime =((fsec)(Time::now() - start_time)).count();
+                if(screen >= 1)
+                    validateSolution();
+                removal_start = Time::now();
 
-        // one_round_time = 0;
-        runtime =((fsec)(Time::now() - start_time)).count();
-        if(screen >= 1)
-            validateSolution();
-        removal_start = Time::now();
+                removal_time = 0;
 
-        removal_time = 0;
-        if (uniform_neighbor==1){ // sample from {4,8,16,32}
-            getRandomFromSetExp();
-        }
-        else if (uniform_neighbor==2){ // sample a random int from range 5 ~ 16
-            neighbor_size = getRandomFromRange();
-        }
-        else if (uniform_neighbor==3){ // simple adaptive
-            if (iteration_stats.size() < nb_start_iter){
-                getRandomFromSetExp();
-            }else{
-                chooseNeighborSizebySimpleAdaptive();
+                if (rw_inner_round_idx == 0){
+                    if (uniform_neighbor==1){ // sample from {4,8,16,32}
+                        getRandomFromSetExp();
+                    }
+                    else if (uniform_neighbor==2){ // sample a random int from range 5 ~ 16
+                        neighbor_size = getRandomFromRange();
+                    }
+                    else if (uniform_neighbor==3){ // simple adaptive
+                        if (iteration_stats.size() < nb_start_iter){
+                            getRandomFromSetExp();
+                        }else{
+                            chooseNeighborSizebySimpleAdaptive();
+                        }
+                    }
+                    else if (uniform_neighbor==4){ // bandit based algorithm
+                        chooseNeighborSizebyBanditAdpative();
+                    
+                    }
+
+                }
+
+
+                if (ALNS){
+                    chooseDestroyHeuristicbyALNS();
+                }
+
+
+                switch (destroy_strategy)
+                {
+                    case RANDOMWALK:
+                        succ = generateNeighborByRandomWalk();
+                        break;
+                    case INTERSECTION:
+                        succ = generateNeighborByIntersection();
+                        break;
+                    case RANDOMWALKPROB:
+                        succ = generateNeighborByRandomWalkProbSelect();
+                        break;
+                    case RANDOMWALKPROBNSR:
+                        succ = generateNeighborByRandomWalkProbSelect();
+                        break;
+                    case RANDOMAGENTS:
+                        neighbor.agents.resize(agents.size());
+                        for (int i = 0; i < (int)agents.size(); i++)
+                            neighbor.agents[i] = i;
+                        if (neighbor.agents.size() > neighbor_size)
+                        {
+                            std::random_shuffle(neighbor.agents.begin(), neighbor.agents.end());
+                            neighbor.agents.resize(neighbor_size);
+                        }
+                        succ = true;
+                        break;
+                    default:
+                        cerr << "Wrong neighbor generation strategy" << endl;
+                        exit(-1);
+                }
+                removal_time +=  ((fsec)(Time::now() - removal_start)).count() ;
+                // one_round_time +=  ((fsec)(Time::now() - removal_start)).count() ;
+                if(!succ)
+                    continue;
+
+                // store the neighbor information
+                neighbor.old_paths.resize(neighbor.agents.size());
+                neighbor.old_sum_of_costs = 0;
+                for (int i = 0; i < (int)neighbor.agents.size(); i++)
+                {
+                    if (replan_algo_name == "PP")
+                        neighbor.old_paths[i] = agents[neighbor.agents[i]].path;
+                    path_table.deletePath(neighbor.agents[i], agents[neighbor.agents[i]].path);
+                    neighbor.old_sum_of_costs += agents[neighbor.agents[i]].path.size() - 1;
+                }
+                num_of_low_level = 0;
+                auto replan_start_time = Time::now();
+                if (replan_algo_name == "EECBS")
+                    succ = runEECBS();
+                else if (replan_algo_name == "CBS")
+                    succ = runCBS();
+                else if (replan_algo_name == "PP"){
+                    // if outer round reach the end and inner round reach the end
+                    if (rw_inner_round_idx == random_walk_timestep_round - 1 && strategy_round_idx == strategy_round - 1){
+                        runPP_analysis = false;
+                    }
+                    else{
+                        runPP_analysis = true;
+                    }
+                    succ = runPP();
+                }
+                else
+                {
+                    cerr << "Wrong replanning strategy" << endl;
+                    exit(-1);
+                }
+                if (succ) improved = true;
+                sum_of_costs += neighbor.sum_of_costs - neighbor.old_sum_of_costs;
+                sum_of_delay = 0;
+                for (int i = 0; i < agents.size(); i++){
+                    sum_of_delay += agents[i].getNumOfDelays();
+                }
+
+                auto replan_time = ((fsec)(Time::now() - replan_start_time)).count();
+                // one_round_time +=  ((fsec)(Time::now() - replan_start_time)).count();
+                if (replan_time > replan_time_limit){
+                    replan_time = replan_time_limit;
+                }
+
+                random_walk_reset = false;
             }
         }
-        else if (uniform_neighbor==4){ // bandit based algorithm
-            chooseNeighborSizebyBanditAdpative();
-        
-        }
-
-        if (ALNS){
-            chooseDestroyHeuristicbyALNS();
-        }
-
-
-        switch (destroy_strategy)
-        {
-            case RANDOMWALK:
-                succ = generateNeighborByRandomWalk();
-                break;
-            case INTERSECTION:
-                succ = generateNeighborByIntersection();
-                break;
-            case RANDOMWALKPROB:
-                succ = generateNeighborByRandomWalkProbSelect();
-                break;
-            case RANDOMWALKPROBNSR:
-                succ = generateNeighborByRandomWalkProbSelect();
-                break;
-            case RANDOMAGENTS:
-                neighbor.agents.resize(agents.size());
-                for (int i = 0; i < (int)agents.size(); i++)
-                    neighbor.agents[i] = i;
-                if (neighbor.agents.size() > neighbor_size)
-                {
-                    std::random_shuffle(neighbor.agents.begin(), neighbor.agents.end());
-                    neighbor.agents.resize(neighbor_size);
-                }
-                succ = true;
-                break;
-            default:
-                cerr << "Wrong neighbor generation strategy" << endl;
-                exit(-1);
-        }
-        removal_time +=  ((fsec)(Time::now() - removal_start)).count() ;
-        // one_round_time +=  ((fsec)(Time::now() - removal_start)).count() ;
-        if(!succ)
-            continue;
-
-        // store the neighbor information
-        neighbor.old_paths.resize(neighbor.agents.size());
-        neighbor.old_sum_of_costs = 0;
-        for (int i = 0; i < (int)neighbor.agents.size(); i++)
-        {
-            if (replan_algo_name == "PP")
-                neighbor.old_paths[i] = agents[neighbor.agents[i]].path;
-            path_table.deletePath(neighbor.agents[i], agents[neighbor.agents[i]].path);
-            neighbor.old_sum_of_costs += agents[neighbor.agents[i]].path.size() - 1;
-        }
-        num_of_low_level = 0;
-        auto replan_start_time = Time::now();
-        if (replan_algo_name == "EECBS")
-            succ = runEECBS();
-        else if (replan_algo_name == "CBS")
-            succ = runCBS();
-        else if (replan_algo_name == "PP")
-            succ = runPP();
-        else
-        {
-            cerr << "Wrong replanning strategy" << endl;
-            exit(-1);
-        }
-        if (succ) improved = true;
-
-
-        sum_of_costs += neighbor.sum_of_costs - neighbor.old_sum_of_costs;
-        sum_of_delay = 0;
-        for (int i = 0; i < agents.size(); i++){
-            sum_of_delay += agents[i].getNumOfDelays();
-        }
-
-        auto replan_time = ((fsec)(Time::now() - replan_start_time)).count();
-        // one_round_time +=  ((fsec)(Time::now() - replan_start_time)).count();
-        if (replan_time > replan_time_limit){
-            replan_time = replan_time_limit;
-        }
-
-        if (ALNS) // update destroy heuristics
-        {
-            removal_start = Time::now();
-            if (neighbor.old_sum_of_costs > neighbor.sum_of_costs )
-                destroy_weights[select_heuristic] =
-                        reaction_factor * (neighbor.old_sum_of_costs - neighbor.sum_of_costs) / neighbor.agents.size()
-                        + (1 - reaction_factor) * destroy_weights[select_heuristic];
-            else
-                destroy_weights[select_heuristic] =
-                        (1 - decay_factor) * destroy_weights[select_heuristic];
-            removal_time +=  ((fsec)(Time::now() - removal_start)).count() ;
-        }
-        // cout << "one_round_time " << one_round_time << endl;
-
-        // if (one_round_time > 0.6){
-        //     one_round_time = 0.1; // outlier
-        // }
-
         if (destroy_strategy == RANDOMWALKPROBNSR){
             // RW_start_agents
             for (auto a : RW_start_agents){
@@ -302,7 +303,7 @@ bool LNS::run()
             }
         }
 
-        if (uniform_neighbor == 3){
+        if (uniform_neighbor == 3 ){
             nb_counts[selected_neighbor] = nb_counts[selected_neighbor] + 1;
             nb_sumTimes[selected_neighbor] = nb_sumTimes[selected_neighbor] + num_of_low_level;
             if (neighbor.old_sum_of_costs > neighbor.sum_of_costs ){
@@ -312,7 +313,6 @@ bool LNS::run()
                 else if (nb_algo_name == "NSR"){
                     nb_sumSuccCounts[selected_neighbor] = nb_sumSuccCounts[selected_neighbor] + num_of_low_level;
                 }
-                
             }
 
             removal_start = Time::now();
@@ -339,47 +339,11 @@ bool LNS::run()
             removal_time +=  ((fsec)(Time::now() - removal_start)).count() ;
         }
         if (uniform_neighbor == 4 && iteration_stats.size() > 30){
-            // if (iteration_stats.size() % 500 == 0){
-            //     nb_counts = vector<double>(4 * num_neighbor_sizes, 1);
-            //     nb_sumTimes = vector<double>(4 * num_neighbor_sizes, 0);
-            //     nb_rewards = vector<double>(4 * num_neighbor_sizes, 0);
-            //     nb_rewards_square = vector<double>(4 * num_neighbor_sizes, 0);
-            //     nb_weights = vector<double>(4 * num_neighbor_sizes, 1);
-            // }
 
             nb_counts[selected_neighbor] = nb_counts[selected_neighbor] + 1;
             nb_sumTimes[selected_neighbor] = nb_sumTimes[selected_neighbor] + num_of_low_level;
-
-            
-
-            // double efficiency_weight = sqrt(effi_factor / (nb_sumTimes[selected_neighbor]/nb_counts[selected_neighbor]));
-            // double iteration_weight = static_cast<double>(init_sum_of_delay - sum_of_delay + 1) / static_cast<double>(init_sum_of_delay);
-            // if (screen >= 0){ // TODO change to 2
-            //     cout << "### efficiency_weight " << efficiency_weight << " iteration_weight " << iteration_weight << " avg time " <<  (nb_sumTimes[selected_neighbor]/nb_counts[selected_neighbor]) << " imp " << neighbor.old_sum_of_costs - neighbor.sum_of_costs;
-            //     cout << " nb_size : " << neighbor_size;
-            //     cout << " nb_weights : ";
-            //     for (int i = 0; i < 4; i++){
-            //         cout << " " << nb_weights[i];
-            //     }
-            //     cout << " nb_counts : ";
-            //     for (int i = 0; i < 4; i++){
-            //         cout << " " << nb_counts[i];
-            //     }
-            //     cout << endl;
-            // }
-
-
-            // removal_start = Time::now();
-            // if (neighbor.old_sum_of_costs > neighbor.sum_of_costs ){
-            //     nb_sumImp[selected_neighbor] = nb_sumImp[selected_neighbor] + (neighbor.old_sum_of_costs - neighbor.sum_of_costs);
-            //     one_reward = nb_sumImp[selected_neighbor] / nb_sumTimes[selected_neighbor];
-            //     nb_rewards[selected_neighbor] = one_reward;
-            //     nb_rewards_square[selected_neighbor] = one_reward * one_reward;
-            // }
-            // removal_time +=  ((fsec)(Time::now() - removal_start)).count() ;
-
         }
-
+                
 
         if (iteration_stats.size() <= 2000 or  iteration_stats.size() % log_step == 0 or replan_time > replan_time_limit){
             cout << "num_of_low_level : " << num_of_low_level << " lns_runtime : " << lns_runtime << " replan_time : " <<  replan_time << " neighbor_size  : " << neighbor_size << " group_size : " << neighbor.agents.size() << " removal_time : " << removal_time ;
@@ -389,9 +353,25 @@ bool LNS::run()
             cout << endl;
 
         }
+
+        if (ALNS) // update destroy heuristics
+        {
+            removal_start = Time::now();
+            if (neighbor.old_sum_of_costs > neighbor.sum_of_costs )
+                destroy_weights[select_heuristic] =
+                        reaction_factor * (neighbor.old_sum_of_costs - neighbor.sum_of_costs) / neighbor.agents.size()
+                        + (1 - reaction_factor) * destroy_weights[select_heuristic];
+            else
+                destroy_weights[select_heuristic] =
+                        (1 - decay_factor) * destroy_weights[select_heuristic];
+            removal_time +=  ((fsec)(Time::now() - removal_start)).count() ;
+        }
         lns_runtime = lns_runtime + replan_time + removal_time;
         
         runtime = ((fsec)(Time::now() - start_time)).count();
+
+
+
 
         if (iteration_stats.size() <= 2000 or  iteration_stats.size() % log_step == 0 or replan_time > replan_time_limit){
             cout << "Iteration " << iteration_stats.size() << ", "
@@ -585,44 +565,91 @@ bool LNS::runCBS()
     return succ;
 }
 
+
+
 bool LNS::runPP()
 {
     auto shuffled_agents = neighbor.agents;
-    std::random_shuffle(shuffled_agents.begin(), shuffled_agents.end());
-    if (screen >= 2) {
-        for (auto id : shuffled_agents)
-            cout << id << "(" << agents[id].path_planner.my_heuristic[agents[id].path_planner.start_location] <<
-                "->" << agents[id].path.size() - 1 << "), ";
-        cout << endl;
-    }
-    int remaining_agents = (int)shuffled_agents.size();
     auto p = shuffled_agents.begin();
-    neighbor.sum_of_costs = 0;
     auto pp_start_time = Time::now();
-    while (p != shuffled_agents.end() && ((fsec)(Time::now() - pp_start_time)).count() < replan_time_limit)
-    {
-        int id = *p;
-        if (screen >= 3)
-            cout << "Remaining agents = " << remaining_agents <<
-                 ", remaining time = " << time_limit - runtime << " seconds. " << endl
-                 << "Agent " << agents[id].id << endl;
-        agents[id].path = agents[id].path_planner.findOptimalPath(path_table);
-        num_of_low_level += agents[id].path_planner.num_expanded;
-        if (agents[id].path.empty())
-        {
-            break;
-        }
-        neighbor.sum_of_costs += (int)agents[id].path.size() - 1;
-        if (neighbor.sum_of_costs >= neighbor.old_sum_of_costs){
-            break;
-        }
 
-        path_table.insertPath(agents[id].id, agents[id].path);
-        remaining_agents--;
-        ++p;
+
+    if (destroy_strategy == RANDOMWALK or destroy_strategy == RANDOMWALKPROB){
+        // print random_walk_init_agent and random_walk_start_timestep
+        for (int i = 0; i < random_walk_init_agent.size(); i++){
+            cout << "random_walk_init_agent: " << random_walk_init_agent[i] << ", random_walk_start_timestep: " << random_walk_start_timestep[i] ;
+            for (auto nb_agent_idx = 0; nb_agent_idx < neighbor.agents.size(); nb_agent_idx++){
+                // if nb_agent_idx == random_walk_init_agent[i], print path len
+                if (neighbor.agents[nb_agent_idx] == random_walk_init_agent[i]){
+                    cout << " (" << neighbor.old_paths[nb_agent_idx].size() - 1 << ") ";
+                    break;
+                }
+            }
+
+        }
+        cout << endl;   
 
     }
-    if (p == shuffled_agents.end() && neighbor.sum_of_costs < neighbor.old_sum_of_costs && ((fsec)(Time::now() - pp_start_time)).count() < replan_time_limit ) // accept new paths
+
+    for (int pp_round_idx = 0; pp_round_idx < pp_round; pp_round_idx++){
+
+        num_of_low_level = 0;
+        std::random_shuffle(shuffled_agents.begin(), shuffled_agents.end());
+        int remaining_agents = (int)shuffled_agents.size();
+        p = shuffled_agents.begin();
+        neighbor.sum_of_costs = 0;
+        pp_start_time = Time::now();
+        while (p != shuffled_agents.end() && ((fsec)(Time::now() - pp_start_time)).count() < replan_time_limit)
+        {
+            int id = *p;
+            if (screen >= 3)
+                cout << "Remaining agents = " << remaining_agents <<
+                    ", remaining time = " << time_limit - runtime << " seconds. " << endl
+                    << "Agent " << agents[id].id << endl;
+            agents[id].path = agents[id].path_planner.findOptimalPath(path_table);
+            num_of_low_level += agents[id].path_planner.num_expanded;
+            if (agents[id].path.empty())
+            {
+                break;
+            }
+            neighbor.sum_of_costs += (int)agents[id].path.size() - 1;
+            if (neighbor.sum_of_costs >= neighbor.old_sum_of_costs){
+                break;
+            }
+
+            path_table.insertPath(agents[id].id, agents[id].path);
+            remaining_agents--;
+            ++p;
+
+        }
+
+        // print agent information
+        // if randomwalk strategy, print the init_agent and start_timestep
+
+
+        // print removal agent information 
+        cout << "pp_round_idx: " << pp_round_idx;
+        for (int id : shuffled_agents){
+            cout << " removal_agent: " << id << " delay: " << agents[id].getNumOfDelays();
+        }
+        cout << endl;
+
+        cout << "num_of_low_level: " << num_of_low_level << endl;
+
+        // delete the agent paths from path_table if not the last iteration 
+        if (pp_round_idx != pp_round - 1){
+            auto p2 = shuffled_agents.begin();
+            while (p2 != p) // remove the planned paths
+            {           
+                int a = *p2;
+                path_table.deletePath(agents[a].id, agents[a].path);
+                ++p2;
+            }
+        }
+
+
+    }
+    if (p == shuffled_agents.end() && neighbor.sum_of_costs < neighbor.old_sum_of_costs && ((fsec)(Time::now() - pp_start_time)).count() < replan_time_limit && runPP_analysis == false) // accept new paths
     {
         return true;
     }
@@ -899,13 +926,29 @@ bool LNS::generateNeighborByRandomWalk()
     int a = findMostDelayedAgent();
     if (a < 0)
         return false;
+        
 
     set<int> neighbors_set;
     neighbors_set.insert(a);
     int count = 0;
+    random_walk_start_timestep.clear(); 
     while (neighbors_set.size() < neighbor_size && count < 10)
-    {
+    {   
+        
+
+        if (random_walk_reset){
+            random_walk_init_agent.push_back(a);
+            
+        }else{
+            // if the random walk init agent not enough, return true
+            if (count >= random_walk_init_agent.size()){
+                return true;    
+            }
+            // set a and i based on the order added to the list
+            a = random_walk_init_agent[count];
+        }
         int t = rand() % agents[a].path.size();
+        random_walk_start_timestep.push_back(t);
         randomWalk(a, agents[a].path[t].location, t, neighbors_set, neighbor_size, (int) agents[a].path.size() - 1);
         count++;
         // select the next agent randomly
@@ -934,6 +977,7 @@ bool LNS::generateNeighborByRandomWalk()
 
 bool LNS::generateNeighborByRandomWalkProbSelect()
 {
+
     if (neighbor_size >= (int)agents.size())
     {
         neighbor.agents.resize(agents.size());
@@ -962,13 +1006,29 @@ bool LNS::generateNeighborByRandomWalkProbSelect()
     set<int> neighbors_set;
     int count = 0;
     RW_start_agents.clear();
+    random_walk_start_timestep.clear(); 
     while (neighbors_set.size() < neighbor_size && count < 10)
     {
         int a = findAgentBasedOnDelay();
+
+        if (random_walk_reset){
+            random_walk_init_agent.push_back(a);
+            
+        }else{
+            // if the random walk init agent not enough, return true
+            if (count >= random_walk_init_agent.size()){
+                return true;    
+            }
+            // set a and i based on the order added to the list
+            a = random_walk_init_agent[count];
+        }
+
+
         if (a < 0)
             return false;
         RW_start_agents.push_back(a);
         int t = rand() % agents[a].path.size();
+        random_walk_start_timestep.push_back(t);
         randomWalk(a, agents[a].path[t].location, t, neighbors_set, neighbor_size, (int) agents[a].path.size() - 1);
         count++;
 
@@ -977,7 +1037,7 @@ bool LNS::generateNeighborByRandomWalkProbSelect()
         return false;
     neighbor.agents.assign(neighbors_set.begin(), neighbors_set.end());
 
-
+    
     return true;
 }
 

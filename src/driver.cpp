@@ -18,6 +18,11 @@ int main(int argc, char** argv)
 	po::options_description desc("Allowed options");
 	desc.add_options()
 		("help", "produce help message")
+        // analysis
+        ("random_walk_timestep_round", po::value<int>()->default_value(2), "number of timesteps for random walk")
+        ("strategy_round", po::value<int>()->default_value(2), "number of rounds for strategy")
+        ("pp_round", po::value<int>()->default_value(3), "number of rounds for pp")
+
         ("state", po::value<string>()->required(), "json file that stores the state")
         ("uniform_neighbor", po::value<int>()->default_value(0), "(0) fixed nb_size specified by --neighborSize (1) nb_size sample from {4,8,16,32} (2) nb_size sample from 5~16 (3) simple adaptive (4) bandit based algorithm")
 		("map,m", po::value<string>()->required(), "input file for map")
@@ -31,6 +36,7 @@ int main(int argc, char** argv)
 		("screen,s", po::value<int>()->default_value(0),
 		        "screen option (0: none; 1: LNS results; 2:LNS detailed results; 3: MAPF detailed results)")
 		("stats", po::value<string>(), "output stats file")
+        
 
 		// solver
 		("solver", po::value<string>()->default_value("LNS"), "solver (LNS, A-BCBS, A-EECBS)")
@@ -92,6 +98,10 @@ int main(int argc, char** argv)
         lns.replan_time_limit = vm["replanTime"].as<double>();
         lns.effi_factor = vm["effi_factor"].as<double>();
         lns.nb_start_iter = vm["nb_start_iter"].as<int>();
+        // analysis
+        lns.random_walk_timestep_round = vm["random_walk_timestep_round"].as<int>();
+        lns.strategy_round = vm["strategy_round"].as<int>();
+        lns.pp_round = vm["pp_round"].as<int>();
         bool succ = lns.run();
         if (succ)
             lns.validateSolution();

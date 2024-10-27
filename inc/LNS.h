@@ -45,6 +45,19 @@ struct Neighbor
 class LNS
 {
 public:
+
+
+    // analysis_params
+    vector<int> random_walk_init_agent;
+    vector<int> random_walk_start_timestep;   
+    bool random_walk_reset = false;
+    int strategy_round = 6;
+    int pp_round = 6;
+    int random_walk_timestep_round = 6;
+    int curr_random_walk_timestep_round = 0;
+    bool runPP_analysis = false;
+
+
     bool nb_prob;
     vector<Agent> agents;
     vector<int> delayed_agents;
