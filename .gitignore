@@ -4,3 +4,7 @@ bin
 cmake*
 exp*
 debug
+output/*
+data
+script/*
+data/*
