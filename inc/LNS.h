@@ -79,7 +79,7 @@ public:
     double effi_factor = 0.1;
     string nb_algo_name;
     int nb_start_iter = 100;
-
+    bool pp_random_walk = false;
 
 private:
 

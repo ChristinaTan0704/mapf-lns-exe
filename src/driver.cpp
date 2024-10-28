@@ -36,6 +36,7 @@ int main(int argc, char** argv)
 		("solver", po::value<string>()->default_value("LNS"), "solver (LNS, A-BCBS, A-EECBS)")
 
         // params for LNS
+        ("pp_random_walk", po::value<bool>()->default_value(false), "use pp random walk")
         ("nb_start_iter", po::value<int>()->default_value(100), "start iteration for nb selection")
 		("nb_prob", po::value<bool>()->default_value(true), "use nb probability other wise use max reward")
         ("effi_factor", po::value<double>()->default_value(1000), "weight for nb efficiency")
@@ -92,6 +93,7 @@ int main(int argc, char** argv)
         lns.replan_time_limit = vm["replanTime"].as<double>();
         lns.effi_factor = vm["effi_factor"].as<double>();
         lns.nb_start_iter = vm["nb_start_iter"].as<int>();
+        lns.pp_random_walk = vm["pp_random_walk"].as<bool>();
         bool succ = lns.run();
         if (succ)
             lns.validateSolution();
