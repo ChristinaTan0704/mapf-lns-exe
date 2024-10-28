@@ -82,6 +82,8 @@ public:
     bool pp_random_walk = false;
     double NSR_succ_rate = 0.01;
     bool pp_delay = false;
+    bool SR_update_all = false;
+    int history_size = -1;
 
 private:
 
@@ -125,6 +127,11 @@ private:
     vector<double> nb_sumImp;
     vector<double> agent_SuccNode;
     vector<double> agent_SumNode;
+    vector<vector<double>> agent_SuccNode_buffer;
+    vector<vector<int>> agent_SuccNodeIter_buffer;
+    vector<vector<double>> agent_SumNode_buffer;
+    vector<vector<double>> agentSumNodeIter_buffer;
+    // random walk related
     vector<int> RW_start_agents;
     int selected_neighbor;
     int select_heuristic;

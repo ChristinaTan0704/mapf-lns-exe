@@ -36,6 +36,8 @@ int main(int argc, char** argv)
 		("solver", po::value<string>()->default_value("LNS"), "solver (LNS, A-BCBS, A-EECBS)")
 
         // params for LNS
+        ("history_size", po::value<int>()->default_value(-1), "history size for random walk")
+        ("SR_update_all", po::value<bool>()->default_value(false), "update all nb counts")
         ("NSR_succ_rate", po::value<double>()->default_value(0.01), "success rate for NSR")
         ("pp_random_walk", po::value<bool>()->default_value(false), "use pp random walk")
         ("pp_delay", po::value<bool>()->default_value(false), "use pp random walk")
@@ -98,6 +100,8 @@ int main(int argc, char** argv)
         lns.pp_random_walk = vm["pp_random_walk"].as<bool>();
         lns.NSR_succ_rate = vm["NSR_succ_rate"].as<double>();
         lns.pp_delay = vm["pp_delay"].as<bool>();
+        lns.SR_update_all = vm["SR_update_all"].as<bool>();
+        lns.history_size = vm["history_size"].as<int>();
         bool succ = lns.run();
         if (succ)
             lns.validateSolution();

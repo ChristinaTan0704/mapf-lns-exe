@@ -234,7 +234,6 @@ bool LNS::run()
                 exit(-1);
         }
         removal_time +=  ((fsec)(Time::now() - removal_start)).count() ;
-        // one_round_time +=  ((fsec)(Time::now() - removal_start)).count() ;
         if(!succ)
             continue;
 
@@ -288,23 +287,42 @@ bool LNS::run()
                         (1 - decay_factor) * destroy_weights[select_heuristic];
             removal_time +=  ((fsec)(Time::now() - removal_start)).count() ;
         }
-        // cout << "one_round_time " << one_round_time << endl;
-
-        // if (one_round_time > 0.6){
-        //     one_round_time = 0.1; // outlier
-        // }
 
         if (destroy_strategy == RANDOMWALKPROBNSR){
             // RW_start_agents
-            for (auto a : RW_start_agents){
-                if (neighbor.old_sum_of_costs > neighbor.sum_of_costs){
-                    agent_SuccNode[a] = agent_SuccNode[a] + num_of_low_level;
+            if (SR_update_all){
+                for (auto a : neighbor.agents){
+                    if (neighbor.old_sum_of_costs > neighbor.sum_of_costs){
+                        agent_SuccNode[a] = agent_SuccNode[a] + num_of_low_level;
+                        // agent_SuccNode_buffer[a].push_back(num_of_low_level);
+                        // agent_SuccNodeIter_buffer[a].push_back(iteration_stats.size());
+                    }
+                    else{
+                        agent_SuccNode[a] = agent_SuccNode[a] + num_of_low_level*NSR_succ_rate; // not too critical to the failure ones
+                    }
+                    agent_SumNode[a] = agent_SumNode[a] + num_of_low_level;
+                    // agent_SumNode_buffer[a].push_back(num_of_low_level);
+                    // agentSumNodeIter_buffer[a].push_back(iteration_stats.size());
                 }
-                else{
-                    agent_SuccNode[a] = agent_SuccNode[a] + num_of_low_level*NSR_succ_rate; // not too critical to the failure ones
-                }
-                agent_SumNode[a] = agent_SumNode[a] + num_of_low_level;
             }
+            else{
+                for (auto a : RW_start_agents){
+                    if (neighbor.old_sum_of_costs > neighbor.sum_of_costs){
+                        agent_SuccNode[a] = agent_SuccNode[a] + num_of_low_level;
+                        // agent_SuccNode_buffer[a].push_back(num_of_low_level);
+                        // agent_SuccNodeIter_buffer[a].push_back(iteration_stats.size());
+                    }
+                    else{
+                        agent_SuccNode[a] = agent_SuccNode[a] + num_of_low_level*NSR_succ_rate; // not too critical to the failure ones
+                    }
+                    agent_SumNode[a] = agent_SumNode[a] + num_of_low_level;
+                    // agent_SumNode_buffer[a].push_back(num_of_low_level);
+                    // agentSumNodeIter_buffer[a].push_back(iteration_stats.size());
+                }
+            }
+
+
+
         }
 
         if (destroy_strategy == RANDOMWALKPROBSR){
@@ -405,6 +423,24 @@ bool LNS::run()
             cout << endl;
 
         }
+
+        // update agent_SumNode_buffer agentSumNodeIter_buffer agent_SuccNode_buffer agent_SuccNodeIter_buffer to include the last history_size
+        // if the iteration in agentSumNodeIter_buffer is larger than history_size, remove the oldest one
+        // if ((destroy_strategy == RANDOMWALKPROBNSR || destroy_strategy == RANDOMWALKPROBSR) && history_size != -1){
+        //     // iteration through all the agents
+        //     for (auto a : agents){
+        //         while (!agentSumNodeIter_buffer[a.id].empty() && agentSumNodeIter_buffer[a.id].front() < (int)iteration_stats.size() - history_size) {
+        //             agentSumNodeIter_buffer[a.id].erase(agentSumNodeIter_buffer[a.id].begin());
+        //             agent_SumNode_buffer[a.id].erase(agent_SumNode_buffer[a.id].begin());
+        //         }
+        //         while (!agent_SuccNodeIter_buffer[a.id].empty() && agent_SuccNodeIter_buffer[a.id].front() < (int)iteration_stats.size() - history_size) {
+        //             agent_SuccNodeIter_buffer[a.id].erase(agent_SuccNodeIter_buffer[a.id].begin());
+        //             agent_SuccNode_buffer[a.id].erase(agent_SuccNode_buffer[a.id].begin());
+        //         }
+        //     }
+        // }
+
+
         lns_runtime = lns_runtime + replan_time + removal_time;
         
         runtime = ((fsec)(Time::now() - start_time)).count();
@@ -636,7 +672,7 @@ bool LNS::runPP()
     else if (pp_random_walk or (destroy_strategy != RANDOMWALKPROB && destroy_strategy != RANDOMWALKPROBNSR && destroy_strategy != RANDOMWALKPROBSR && destroy_strategy != RANDOMWALK)){
         std::random_shuffle(shuffled_agents.begin(), shuffled_agents.end());
     }
-    
+
     if (screen >= 2) {
         for (auto id : shuffled_agents)
             cout << id << "(" << agents[id].path_planner.my_heuristic[agents[id].path_planner.start_location] <<
