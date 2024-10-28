@@ -632,9 +632,6 @@ bool LNS::runPP()
 
         }
 
-        if ( neighbor.sum_of_costs == 0){
-            int debug = 1;
-        }
 
         // print removal agent information 
         cout << "after_pp_result :  ";
@@ -1056,6 +1053,7 @@ bool LNS::generateNeighborByRandomWalkProbSelect()
         int t = rand() % agents[a].path.size();
         random_walk_start_timestep.push_back(t);
         randomWalk(a, agents[a].path[t].location, t, neighbors_set, neighbor_size, (int) agents[a].path.size() - 1);
+
         count++;
 
     }
