@@ -60,6 +60,8 @@ LNS::LNS(const Instance& instance, double time_limit, string init_algo_name, str
         destroy_strategy = RANDOMWALKPROB;
     else if (destory_name == "RandomWalkProbNSR")
         destroy_strategy = RANDOMWALKPROBNSR;
+    else if (destory_name == "RandomWalkProbSR")
+        destroy_strategy = RANDOMWALKPROBSR;
     else
     {
         cerr << "Destroy heuristic " << destory_name << " does not exists. " << endl;
@@ -213,6 +215,9 @@ bool LNS::run()
             case RANDOMWALKPROBNSR:
                 succ = generateNeighborByRandomWalkProbSelect();
                 break;
+            case RANDOMWALKPROBSR:
+                succ = generateNeighborByRandomWalkProbSelect();
+                break;
             case RANDOMAGENTS:
                 neighbor.agents.resize(agents.size());
                 for (int i = 0; i < (int)agents.size(); i++)
@@ -301,6 +306,17 @@ bool LNS::run()
                 agent_SumNode[a] = agent_SumNode[a] + num_of_low_level;
             }
         }
+
+        if (destroy_strategy == RANDOMWALKPROBSR){
+            // RW_start_agents
+            for (auto a : RW_start_agents){
+                if (neighbor.old_sum_of_costs > neighbor.sum_of_costs){
+                    agent_SuccNode[a] = agent_SuccNode[a] + 1;
+                }
+                agent_SumNode[a] = agent_SumNode[a] + 1;
+            }
+        }
+
 
         if (uniform_neighbor == 3){
             nb_counts[selected_neighbor] = nb_counts[selected_neighbor] + 1;

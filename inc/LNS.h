@@ -15,7 +15,7 @@
 using namespace std::chrono;
 typedef std::chrono::high_resolution_clock Time;
 typedef std::chrono::duration<float> fsec;
-enum destroy_heuristic { RANDOMAGENTS, RANDOMWALK, INTERSECTION, RANDOMWALKPROB, RANDOMWALKPROBNSR, DESTORY_COUNT }; //
+enum destroy_heuristic { RANDOMAGENTS, RANDOMWALK, INTERSECTION, RANDOMWALKPROB, RANDOMWALKPROBNSR, RANDOMWALKPROBSR, DESTORY_COUNT }; //
 
 struct Agent
 {
