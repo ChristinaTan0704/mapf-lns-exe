@@ -600,6 +600,12 @@ bool LNS::runPP()
         int remaining_agents = (int)shuffled_agents.size();
         p = shuffled_agents.begin();
         neighbor.sum_of_costs = 0;
+
+
+        for (int id : shuffled_agents){
+            cout << " removal_agent: " << id << " delay: " << agents[id].getNumOfDelays();
+        }
+
         pp_start_time = Time::now();
         while (p != shuffled_agents.end() && ((fsec)(Time::now() - pp_start_time)).count() < replan_time_limit)
         {
@@ -625,15 +631,7 @@ bool LNS::runPP()
 
         }
 
-        // print agent information
-        // if randomwalk strategy, print the init_agent and start_timestep
-
-
         // print removal agent information 
-
-        for (int id : shuffled_agents){
-            cout << " removal_agent: " << id << " delay: " << agents[id].getNumOfDelays();
-        }
         cout << endl;
         cout << "pp_round_idx: " << pp_round_idx << " old_sum_of_costs: " << neighbor.old_sum_of_costs << " sum_of_costs: " << neighbor.sum_of_costs << " num_of_low_level: " << num_of_low_level << endl;
 
@@ -646,6 +644,20 @@ bool LNS::runPP()
                 path_table.deletePath(agents[a].id, agents[a].path);
                 ++p2;
             }
+            if (!neighbor.old_paths.empty())
+            {
+                p2 = neighbor.agents.begin();
+                for (int i = 0; i < (int)neighbor.agents.size(); i++)
+                {
+                    int a = *p2;
+                    agents[a].path = neighbor.old_paths[i];
+                    path_table.insertPath(agents[a].id, agents[a].path);
+                    ++p2;
+                }
+                neighbor.sum_of_costs = neighbor.old_sum_of_costs;
+            }
+
+
         }
 
 
