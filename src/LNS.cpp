@@ -296,7 +296,7 @@ bool LNS::run()
                     agent_SuccNode[a] = agent_SuccNode[a] + num_of_low_level;
                 }
                 else{
-                    agent_SuccNode[a] = agent_SuccNode[a] + num_of_low_level*0.01; // not too critical to the failure ones
+                    agent_SuccNode[a] = agent_SuccNode[a] + num_of_low_level*NSR_succ_rate; // not too critical to the failure ones
                 }
                 agent_SumNode[a] = agent_SumNode[a] + num_of_low_level;
             }
