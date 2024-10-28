@@ -601,10 +601,11 @@ bool LNS::runPP()
         p = shuffled_agents.begin();
         neighbor.sum_of_costs = 0;
 
-
+        cout << "before_pp_result : ";
         for (int id : shuffled_agents){
             cout << " removal_agent: " << id << " delay: " << agents[id].getNumOfDelays();
         }
+        cout << endl;
 
         pp_start_time = Time::now();
         while (p != shuffled_agents.end() && ((fsec)(Time::now() - pp_start_time)).count() < replan_time_limit)
@@ -631,19 +632,33 @@ bool LNS::runPP()
 
         }
 
+        if ( neighbor.sum_of_costs == 0){
+            int debug = 1;
+        }
+
         // print removal agent information 
+        cout << "after_pp_result :  ";
+        auto p2 = shuffled_agents.begin();
+        while (p2 != p) 
+        {           
+            int a = *p2;
+            cout << " removal_agent: " << a << " delay: " << agents[a].getNumOfDelays();
+            ++p2;
+        }
         cout << endl;
-        cout << "pp_round_idx: " << pp_round_idx << " old_sum_of_costs: " << neighbor.old_sum_of_costs << " sum_of_costs: " << neighbor.sum_of_costs << " num_of_low_level: " << num_of_low_level << endl;
+        cout << "pp_round_idx: " << pp_round_idx << " old_sum_of_costs: " << neighbor.old_sum_of_costs << " sum_of_costs: " << neighbor.sum_of_costs << " num_of_low_level: " << num_of_low_level <<  " remaining_agents: " << remaining_agents << endl;
 
         // delete the agent paths from path_table if not the last iteration 
         if (pp_round_idx != pp_round - 1){
             auto p2 = shuffled_agents.begin();
-            while (p2 != p) // remove the planned paths
+            // remove the planned paths from path_table
+            while (p2 != p) 
             {           
                 int a = *p2;
                 path_table.deletePath(agents[a].id, agents[a].path);
                 ++p2;
             }
+            // if not the last iteration, restore the old paths to get correct agent.delay
             if (!neighbor.old_paths.empty())
             {
                 p2 = neighbor.agents.begin();
@@ -651,10 +666,8 @@ bool LNS::runPP()
                 {
                     int a = *p2;
                     agents[a].path = neighbor.old_paths[i];
-                    path_table.insertPath(agents[a].id, agents[a].path);
                     ++p2;
                 }
-                neighbor.sum_of_costs = neighbor.old_sum_of_costs;
             }
 
 
