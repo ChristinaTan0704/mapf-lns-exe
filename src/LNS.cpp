@@ -605,9 +605,38 @@ bool LNS::runPP()
 {
     auto shuffled_agents = neighbor.agents;
 
-    if (pp_random_walk or (destroy_strategy != RANDOMWALKPROB && destroy_strategy != RANDOMWALKPROBNSR && destroy_strategy != RANDOMWALKPROBSR && destroy_strategy != RANDOMWALK)){
+    if (pp_delay){
+        // Create probability distribution based on delays
+        std::vector<double> weights;
+        for (auto id : shuffled_agents) {
+            weights.push_back(agents[id].getNumOfDelays() + 1.0); // Add 1 to avoid 0 weights
+        }
+
+        std::random_device rd;
+        std::mt19937 gen(rd());
+        std::discrete_distribution<> dist(weights.begin(), weights.end());
+        
+        // Sample agents according to delay-based probabilities
+        std::vector<int> new_order;
+        auto remaining = shuffled_agents;
+        while (!remaining.empty()) {
+            int idx = dist(gen);
+            new_order.push_back(remaining[idx]);
+            remaining.erase(remaining.begin() + idx);
+            
+            // Recalculate distribution for remaining agents
+            weights.clear();
+            for (auto id : remaining) {
+                weights.push_back(agents[id].getNumOfDelays() + 1.0);
+            }
+            dist = std::discrete_distribution<>(weights.begin(), weights.end());
+        }
+        shuffled_agents = new_order;
+    }
+    else if (pp_random_walk or (destroy_strategy != RANDOMWALKPROB && destroy_strategy != RANDOMWALKPROBNSR && destroy_strategy != RANDOMWALKPROBSR && destroy_strategy != RANDOMWALK)){
         std::random_shuffle(shuffled_agents.begin(), shuffled_agents.end());
     }
+    
     if (screen >= 2) {
         for (auto id : shuffled_agents)
             cout << id << "(" << agents[id].path_planner.my_heuristic[agents[id].path_planner.start_location] <<

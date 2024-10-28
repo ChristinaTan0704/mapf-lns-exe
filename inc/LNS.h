@@ -81,6 +81,7 @@ public:
     int nb_start_iter = 100;
     bool pp_random_walk = false;
     double NSR_succ_rate = 0.01;
+    bool pp_delay = false;
 
 private:
 
