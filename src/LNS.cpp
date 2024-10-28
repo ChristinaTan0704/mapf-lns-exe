@@ -605,7 +605,7 @@ bool LNS::runPP()
 {
     auto shuffled_agents = neighbor.agents;
 
-    if (pp_random_walk && (destroy_strategy == RANDOMWALKPROBNSR or destroy_strategy == RANDOMWALK)){
+    if (pp_random_walk or (destroy_strategy != RANDOMWALKPROB && destroy_strategy != RANDOMWALKPROBNSR && destroy_strategy != RANDOMWALKPROBSR && destroy_strategy != RANDOMWALK)){
         std::random_shuffle(shuffled_agents.begin(), shuffled_agents.end());
     }
     if (screen >= 2) {
