@@ -84,7 +84,7 @@ public:
     bool pp_delay = false;
     bool SR_update_all = false;
     int history_size = -1;
-
+    int SR_buffer_min_size = 5;
 private:
 
 
