@@ -295,36 +295,38 @@ bool LNS::run()
 
         if (destroy_strategy == RANDOMWALKPROBNSR){
             // RW_start_agents
-            if (SR_update_all){
-                for (auto a : neighbor.agents){
-                    if (neighbor.old_sum_of_costs > neighbor.sum_of_costs){
-                        agent_SuccNode[a] = agent_SuccNode[a] + num_of_low_level;
-                        agent_SuccNode_buffer[a].push_back(num_of_low_level);
-                        agent_SuccNodeIter_buffer[a].push_back(iteration_stats.size());
-                    }
-                    else{
-                        agent_SuccNode[a] = agent_SuccNode[a] + num_of_low_level*NSR_succ_rate; // not too critical to the failure ones
-                    }
-                    agent_SumNode[a] = agent_SumNode[a] + num_of_low_level;
-                    agent_SumNode_buffer[a].push_back(num_of_low_level);
-                    agentSumNodeIter_buffer[a].push_back(iteration_stats.size());
+            // if (SR_update_all){
+            //     for (auto a : neighbor.agents){
+            //         if (neighbor.old_sum_of_costs > neighbor.sum_of_costs){
+            //             agent_SuccNode[a] = agent_SuccNode[a] + num_of_low_level;
+            //             agent_SuccNode_buffer[a].push_back(num_of_low_level);
+            //             agent_SuccNodeIter_buffer[a].push_back(iteration_stats.size());
+            //         }
+            //         else{
+            //             agent_SuccNode[a] = agent_SuccNode[a] + num_of_low_level*NSR_succ_rate; // not too critical to the failure ones
+            //         }
+            //         agent_SumNode[a] = agent_SumNode[a] + num_of_low_level;
+            //         agent_SumNode_buffer[a].push_back(num_of_low_level);
+            //         agentSumNodeIter_buffer[a].push_back(iteration_stats.size());
+            //     }
+            // }
+            // else{
+            for (auto a : RW_start_agents){
+                if (neighbor.old_sum_of_costs > neighbor.sum_of_costs){
+                    agent_SuccNode[a] = agent_SuccNode[a] + num_of_low_level;
+                    agent_SuccNode_buffer[a].push_back(num_of_low_level);
+                    agent_SuccNodeIter_buffer[a].push_back(iteration_stats.size());
                 }
-            }
-            else{
-                for (auto a : RW_start_agents){
-                    if (neighbor.old_sum_of_costs > neighbor.sum_of_costs){
-                        agent_SuccNode[a] = agent_SuccNode[a] + num_of_low_level;
-                        agent_SuccNode_buffer[a].push_back(num_of_low_level);
-                        agent_SuccNodeIter_buffer[a].push_back(iteration_stats.size());
-                    }
-                    else{
-                        agent_SuccNode[a] = agent_SuccNode[a] + num_of_low_level*NSR_succ_rate; // not too critical to the failure ones
-                    }
-                    agent_SumNode[a] = agent_SumNode[a] + num_of_low_level;
-                    agent_SumNode_buffer[a].push_back(num_of_low_level);
-                    agentSumNodeIter_buffer[a].push_back(iteration_stats.size());
+                else{
+                    agent_SuccNode[a] = agent_SuccNode[a] + num_of_low_level*NSR_succ_rate; // not too critical to the failure ones
+                    agent_SuccNode_buffer[a].push_back(num_of_low_level*NSR_succ_rate);
+                    agent_SuccNodeIter_buffer[a].push_back(iteration_stats.size());
                 }
+                agent_SumNode[a] = agent_SumNode[a] + num_of_low_level;
+                agent_SumNode_buffer[a].push_back(num_of_low_level);
+                agentSumNodeIter_buffer[a].push_back(iteration_stats.size());
             }
+            // }
 
 
 
@@ -434,6 +436,7 @@ bool LNS::run()
         if ((destroy_strategy == RANDOMWALKPROBNSR || destroy_strategy == RANDOMWALKPROBSR) && history_size != -1){
             // iteration through all the agents
             for (auto a : agents){
+
                 while (!agentSumNodeIter_buffer[a.id].empty() && agentSumNodeIter_buffer[a.id].front() < (int)iteration_stats.size() - history_size) {
                     agentSumNodeIter_buffer[a.id].erase(agentSumNodeIter_buffer[a.id].begin());
                     agent_SumNode_buffer[a.id].erase(agent_SumNode_buffer[a.id].begin());
@@ -675,7 +678,7 @@ bool LNS::runPP()
         }
         shuffled_agents = new_order;
     }
-    else if (pp_random_walk or (destroy_strategy != RANDOMWALKPROB && destroy_strategy != RANDOMWALKPROBNSR && destroy_strategy != RANDOMWALKPROBSR && destroy_strategy != RANDOMWALK)){
+    else{
         std::random_shuffle(shuffled_agents.begin(), shuffled_agents.end());
     }
 

@@ -38,9 +38,9 @@ int main(int argc, char** argv)
         // params for LNS
         ("SR_buffer_min_size", po::value<int>()->default_value(5), "minimum size for SR buffer")
         ("history_size", po::value<int>()->default_value(-1), "history size for random walk")
-        ("SR_update_all", po::value<bool>()->default_value(false), "update all nb counts")
+        // ("SR_update_all", po::value<bool>()->default_value(false), "update all nb counts")
         ("NSR_succ_rate", po::value<double>()->default_value(0.01), "success rate for NSR")
-        ("pp_random_walk", po::value<bool>()->default_value(false), "use pp random walk")
+        // ("pp_random_walk", po::value<bool>()->default_value(false), "use pp random walk")
         ("pp_delay", po::value<bool>()->default_value(false), "use pp random walk")
         ("nb_start_iter", po::value<int>()->default_value(100), "start iteration for nb selection")
 		("nb_prob", po::value<bool>()->default_value(true), "use nb probability other wise use max reward")
@@ -98,10 +98,10 @@ int main(int argc, char** argv)
         lns.replan_time_limit = vm["replanTime"].as<double>();
         lns.effi_factor = vm["effi_factor"].as<double>();
         lns.nb_start_iter = vm["nb_start_iter"].as<int>();
-        lns.pp_random_walk = vm["pp_random_walk"].as<bool>();
+        // lns.pp_random_walk = vm["pp_random_walk"].as<bool>();
         lns.NSR_succ_rate = vm["NSR_succ_rate"].as<double>();
         lns.pp_delay = vm["pp_delay"].as<bool>();
-        lns.SR_update_all = vm["SR_update_all"].as<bool>();
+        // lns.SR_update_all = vm["SR_update_all"].as<bool>();
         lns.history_size = vm["history_size"].as<int>();
         lns.SR_buffer_min_size = vm["SR_buffer_min_size"].as<int>();
         bool succ = lns.run();
