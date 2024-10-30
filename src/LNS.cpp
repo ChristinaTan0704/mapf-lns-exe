@@ -1034,7 +1034,7 @@ bool LNS::generateNeighborByRandomWalkProbSelect()
             delayed_agents.push_back(i);
             // Calculate the delay score considering both agent delay and success rate
             double delay_score = 0;
-            cout << "agent " << i << " SR buffer size: " << agent_SumNode_buffer[i].size() << "";
+            cout << "agent " << i << " SR buffer size: " << agent_SumNode_buffer[i].size() << " ";
             if (!agent_SumNode_buffer[i].empty() && agent_SumNode_buffer[i].size() > SR_buffer_min_size){
                 double agent_succ_rate = std::accumulate(agent_SuccNode_buffer[i].begin(), agent_SuccNode_buffer[i].end(), 0.0) / 
                                        std::accumulate(agent_SumNode_buffer[i].begin(), agent_SumNode_buffer[i].end(), 0.0);
