@@ -294,23 +294,6 @@ bool LNS::run()
         }
 
         if (destroy_strategy == RANDOMWALKPROBNSR){
-            // RW_start_agents
-            // if (SR_update_all){
-            //     for (auto a : neighbor.agents){
-            //         if (neighbor.old_sum_of_costs > neighbor.sum_of_costs){
-            //             agent_SuccNode[a] = agent_SuccNode[a] + num_of_low_level;
-            //             agent_SuccNode_buffer[a].push_back(num_of_low_level);
-            //             agent_SuccNodeIter_buffer[a].push_back(iteration_stats.size());
-            //         }
-            //         else{
-            //             agent_SuccNode[a] = agent_SuccNode[a] + num_of_low_level*NSR_succ_rate; // not too critical to the failure ones
-            //         }
-            //         agent_SumNode[a] = agent_SumNode[a] + num_of_low_level;
-            //         agent_SumNode_buffer[a].push_back(num_of_low_level);
-            //         agentSumNodeIter_buffer[a].push_back(iteration_stats.size());
-            //     }
-            // }
-            // else{
             for (auto a : RW_start_agents){
                 if (neighbor.old_sum_of_costs > neighbor.sum_of_costs){
                     agent_SuccNode[a] = agent_SuccNode[a] + num_of_low_level;
@@ -326,10 +309,6 @@ bool LNS::run()
                 agent_SumNode_buffer[a].push_back(num_of_low_level);
                 agentSumNodeIter_buffer[a].push_back(iteration_stats.size());
             }
-            // }
-
-
-
         }
 
         if (destroy_strategy == RANDOMWALKPROBSR){
@@ -651,6 +630,9 @@ bool LNS::runPP()
     auto shuffled_agents = neighbor.agents;
 
     if (pp_delay){
+        // Calculate number of agents to select based on delay
+        int num_delay_agents = (int)(shuffled_agents.size() * delay_percent );
+        
         // Create probability distribution based on delays
         std::vector<double> weights;
         for (auto id : shuffled_agents) {
@@ -661,10 +643,10 @@ bool LNS::runPP()
         std::mt19937 gen(rd());
         std::discrete_distribution<> dist(weights.begin(), weights.end());
         
-        // Sample agents according to delay-based probabilities
+        // Sample delay_percent% agents according to delay-based probabilities
         std::vector<int> new_order;
         auto remaining = shuffled_agents;
-        while (!remaining.empty()) {
+        for (int i = 0; i < num_delay_agents && !remaining.empty(); i++) {
             int idx = dist(gen);
             new_order.push_back(remaining[idx]);
             remaining.erase(remaining.begin() + idx);
@@ -676,6 +658,11 @@ bool LNS::runPP()
             }
             dist = std::discrete_distribution<>(weights.begin(), weights.end());
         }
+
+        // Randomly add remaining agents
+        std::random_shuffle(remaining.begin(), remaining.end());
+        new_order.insert(new_order.end(), remaining.begin(), remaining.end());
+        
         shuffled_agents = new_order;
     }
     else{
@@ -1047,6 +1034,7 @@ bool LNS::generateNeighborByRandomWalkProbSelect()
             delayed_agents.push_back(i);
             // Calculate the delay score considering both agent delay and success rate
             double delay_score = 0;
+            // cout << "agent " << i << " SR buffer size: " << agent_SumNode_buffer[i].size() ;
             if (!agent_SumNode_buffer[i].empty() && agent_SumNode_buffer[i].size() > SR_buffer_min_size){
                 double agent_succ_rate = std::accumulate(agent_SuccNode_buffer[i].begin(), agent_SuccNode_buffer[i].end(), 0.0) / 
                                        std::accumulate(agent_SumNode_buffer[i].begin(), agent_SumNode_buffer[i].end(), 0.0);
@@ -1054,9 +1042,7 @@ bool LNS::generateNeighborByRandomWalkProbSelect()
             }else{
                 delay_score = agent_delay;
             }
-
             delay_list.push_back(delay_score);
-
         }
     }
 
