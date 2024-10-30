@@ -79,7 +79,7 @@ public:
     double effi_factor = 0.1;
     string nb_algo_name;
     int nb_start_iter = 100;
-    // bool pp_random_walk = false;
+    bool pp_random_walk = false;
     double NSR_succ_rate = 0.01;
     bool pp_delay = false;
     // bool SR_update_all = false;

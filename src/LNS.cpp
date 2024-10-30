@@ -665,6 +665,16 @@ bool LNS::runPP()
         
         shuffled_agents = new_order;
     }
+    else if (!pp_random_walk and (destroy_strategy == RANDOMWALK or destroy_strategy == RANDOMWALKPROB or destroy_strategy == RANDOMWALKPROBNSR)){
+        // Move RW_start_agents to front of shuffled_agents
+        shuffled_agents.erase(
+            std::remove_if(shuffled_agents.begin(), shuffled_agents.end(),
+                [&](int id) { return std::find(RW_start_agents.begin(), RW_start_agents.end(), id) != RW_start_agents.end(); }
+            ),
+            shuffled_agents.end()
+        );
+        shuffled_agents.insert(shuffled_agents.begin(), RW_start_agents.begin(), RW_start_agents.end());
+    }
     else{
         std::random_shuffle(shuffled_agents.begin(), shuffled_agents.end());
     }
@@ -1034,8 +1044,8 @@ bool LNS::generateNeighborByRandomWalkProbSelect()
             delayed_agents.push_back(i);
             // Calculate the delay score considering both agent delay and success rate
             double delay_score = 0;
-            cout << "agent " << i << " SR buffer size: " << agent_SumNode_buffer[i].size() << " ";
             if (!agent_SumNode_buffer[i].empty() && agent_SumNode_buffer[i].size() > SR_buffer_min_size){
+                cout << "agent " << i << " SR buffer size: " << agent_SumNode_buffer[i].size() << " ";
                 double agent_succ_rate = std::accumulate(agent_SuccNode_buffer[i].begin(), agent_SuccNode_buffer[i].end(), 0.0) / 
                                        std::accumulate(agent_SumNode_buffer[i].begin(), agent_SumNode_buffer[i].end(), 0.0);
                 delay_score = agent_delay * agent_succ_rate;
