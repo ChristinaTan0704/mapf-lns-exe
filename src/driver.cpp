@@ -36,7 +36,7 @@ int main(int argc, char** argv)
 		("solver", po::value<string>()->default_value("LNS"), "solver (LNS, A-BCBS, A-EECBS)")
 
         // params for LNS
-        ("delay_percent", po::value<int>()->default_value(20), "percentage of agents to select based on delay")
+        ("delay_percent", po::value<double>()->default_value(0.2), "percentage of agents to select based on delay")
         ("SR_buffer_min_size", po::value<int>()->default_value(5), "minimum size for SR buffer")
         ("history_size", po::value<int>()->default_value(-1), "history size for random walk")
         // ("SR_update_all", po::value<bool>()->default_value(false), "update all nb counts")
@@ -105,7 +105,7 @@ int main(int argc, char** argv)
         // lns.SR_update_all = vm["SR_update_all"].as<bool>();
         lns.history_size = vm["history_size"].as<int>();
         lns.SR_buffer_min_size = vm["SR_buffer_min_size"].as<int>();
-        lns.delay_percent = vm["delay_percent"].as<int>();
+        lns.delay_percent = vm["delay_percent"].as<double>();
         bool succ = lns.run();
         if (succ)
             lns.validateSolution();
