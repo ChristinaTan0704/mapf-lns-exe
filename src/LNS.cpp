@@ -173,7 +173,7 @@ bool LNS::run()
     for (int i = 0; i < agents.size(); i++){
         init_sum_of_delay += agents[i].getNumOfDelays();
     }
-    while (lns_runtime < time_limit or iteration_stats.size() <= num_of_iterations)
+    while (lns_runtime < time_limit and iteration_stats.size() <= num_of_iterations)
     {
 
         // one_round_time = 0;
