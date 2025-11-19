@@ -145,7 +145,7 @@ bool LNS::run()
     auto removal_start = Time::now();
     double removal_time = 0;
 
-    while (lns_runtime < time_limit or iteration_stats.size() <= num_of_iterations)
+    while (lns_runtime < time_limit && iteration_stats.size() <= num_of_iterations)
     {
         removal_time = 0;
         if (uniform_neighbor==1){ // sample from {2,4,8,16,32}
