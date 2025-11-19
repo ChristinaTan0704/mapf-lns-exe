@@ -167,7 +167,7 @@ bool LNS::run()
     for (int i = 0; i < agents.size(); i++){
         init_sum_of_delay += agents[i].getNumOfDelays();
     }
-    while (lns_runtime < time_limit or iteration_stats.size() <= num_of_iterations)
+    while (lns_runtime < time_limit && iteration_stats.size() <= num_of_iterations)
     {
         for (int strategy_round_idx = 0; strategy_round_idx < strategy_round; strategy_round_idx++){
             random_walk_reset = true;
